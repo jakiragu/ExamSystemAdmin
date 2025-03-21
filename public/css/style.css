@@ -1,0 +1,11 @@
+form .form-control{
+    background-color: lightgray;
+}
+.lightgray{
+    background-color: lightgray;
+}
+#background {
+    background-image: url('../images/Picture2.png');
+    background-size: cover; 
+    background-repeat: no-repeat; 
+    /* background-position: center; */}
