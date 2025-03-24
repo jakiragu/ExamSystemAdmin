@@ -31,6 +31,12 @@
         <th scope="row">{{$student->CertificationID}}</th>
         <td>{{$student->FullName}}</td>
         <td><a href="{{route('ViewAnswers', ['id'=>$student->CertificationID])}}">View Submission</a></td>
+        <td><form action="{{ route('grade.exam') }}" method="POST">
+          @csrf
+          <input type="hidden" name="candidate_id" value="{{ $candidate->CertificationID }}">
+          <button type="submit" class="btn btn-primary">Grade Exam</button>
+      </form>
+        </td>
         </tr>
         @endforeach
 
@@ -40,5 +46,13 @@
     </div>
     <a class="btn btn-primary  btn-sm col-md-1 me-2 mt-5 mb-3 offset-md-11 rounded-pill text-opacity-25" href="{{route('adminDashboard')}}" role="button">Back</a>
 </div>
+@if(isset($candidate->result))
+    <p><strong>Score:</strong> {{ $candidate->result->score }} / {{ $candidate->result->total_questions }}</p>
+    <p><strong>Percentage:</strong> {{ $candidate->result->percentage }}%</p>
+@else
+    <p>No result available yet.</p>
+@endif
+
+
   </body>
 </html>

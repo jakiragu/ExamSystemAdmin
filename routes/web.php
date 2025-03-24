@@ -25,9 +25,10 @@ Route::get('/Admin', [AdminLoginController::class,'create'])->name('Admin');
 Route::post('/Admin',[AdminLoginController::class,'login'])->name('Admin.submit');
 Route::get('/logout', [AdminLoginController::class,'logout'])->name('logout');
 Route::post('/register-candidates', [ExamController::class, 'registerCandidates'])->name('register-candidates');
+Route::get('/AdminSignUp', [AdminLoginController::class,'index'])->name('Admin.signup');
+Route::post('/AdminSignUp', [AdminLoginController::class,'store'])->name('Admin.store');
 Route::middleware([CheckAdmin::class])->group(function (){
-    Route::get('/AdminSignUp', [AdminLoginController::class,'index'])->name('Admin.signup');
-    Route::post('/AdminSignUp', [AdminLoginController::class,'store'])->name('Admin.store');
+   
     Route::get('/adminDashboard', function () { return view('adminDashboard'); })->name('adminDashboard');
     Route::get('/studentInfo', [ExamController::class,'viewStudentInfo'])->name('studentInfo');
     Route::get('/StartTimer',[TimerController::class,'StartTimer'])->name('StartTimer');
@@ -40,8 +41,12 @@ Route::middleware([CheckAdmin::class])->group(function (){
     Route::get('/ViewAnswers/{id}',[ExamController::class,'viewAnswers'])->name('ViewAnswers');
 });
 Route::get('/makeQuestions', function () {
-    return view('makeQuestions');
+    return view('MakeQuestions');
 });
 
 Route::post('/makeQuestions',[GradingController::class,'makeQuestions'])->name('makeQuestions');
+
+
+Route::post('/grade-exam', [GradingController::class, 'gradeExam'])->name('grade.exam');
+
 

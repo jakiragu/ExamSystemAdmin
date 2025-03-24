@@ -40,6 +40,11 @@
                           </div>
 
                       </form>
+                      <form action="{{ route('grade.exam') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="btn btn-primary">Grade Exam</button>
+                    </form>
+                    
                     
                 </div>
                 <div class="col gy-3 row ms-5">

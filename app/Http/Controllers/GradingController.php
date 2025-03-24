@@ -7,6 +7,8 @@ use App\Models\Answers;
 use App\Models\Choices;
 use App\Models\Questions;
 use App\Models\CorrectAnswers;
+use App\Models\Result;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 
 class GradingController extends Controller
@@ -66,4 +68,34 @@ class GradingController extends Controller
             Answers::where('AnswerID',$submittedanswer->AnswerID)->update(['Status'=>$submittedanswer->Status]);
         } 
     }
+  
+public function gradeExams() {
+    $students = DB::table('exam_responses')->select('student_id')->distinct()->get();
+
+    if ($students->isEmpty()) { 
+        return back()->with('error', 'No students have taken the exam yet!');
+    }
+
+    foreach ($students as $student) {
+        $totalQuestions = DB::table('exam_responses')->where('student_id', $student->student_id)->count();
+        $correctAnswers = DB::table('exam_responses')->where('student_id', $student->student_id)->where('is_correct', true)->count();
+
+        $score = $correctAnswers;
+        $percentage = ($totalQuestions > 0) ? ($correctAnswers / $totalQuestions) * 100 : 0;
+
+        DB::table('results')->insert([
+            'student_id' => $student->student_id,
+            'score' => $score,
+            'percentage' => $percentage,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    return back()->with('success', 'Exams graded successfully!');
 }
+
+        
+        // Store or update result
+    }
+
