@@ -7,6 +7,15 @@
     <link rel="stylesheet" href="{{asset('css/style.css')}}">
     @vite(['resources/js/app.js', 'resources/js/Timer.js'])
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <style>
+      body {
+        overflow-x: hidden;
+      }
+      #CorrectAnswer option:checked{
+        background-color: whitesmoke;
+        color: gray;
+      }
+    </style>
 </head>
   <body>
 <div class=" row container bg-light my-5 mx-auto pt-3 justify-content-center" id="background">
@@ -106,36 +115,51 @@
             <hr class="w-75 mx-auto my-5">
             <div id="CorrectAnswer">
                 <div class="row mb-1">
-                    <label for="CorrectAnswer" class="col-md-2 col-form-label offset-md-2">Correct Answer</label>
-                    <div class="col-md-4">
-                        <select class="lightgray form-control border border-0 form-select " id="CorrectAnswer" name="CorrectAnswer">
-                            <option value="" selected disabled>Correct Answer:</option>
-                           
-                        </select>
+                    <label for="CorrectAnswer" class="col-md-2 col-form-label offset-md-2"><b>Correct Answer: </b></label>
+                    <div class="col-md-4" id="CorrectContainer">
+                        
                         <!-- <input type="text" class="lightgray form-control border border-0 " id="Type" name="Type"> -->
                     </div>
                 </div>
             </div>
             <script>
               function bindChoiceChange(){
+                document.getElementById('CorrectContainer').innerHTML =`<select class="lightgray form-control border border-0 form-select" id="CorrectAnswer" name="CorrectAnswer[]" multiple>
+                            <option value="" selected disabled >Choose the correct answer/answers</option>
+                           
+                        </select>`;
                   document.querySelectorAll("input[name='Choices[]']").forEach((choice) => {
                     choice.addEventListener('change', function() {
                         let selectBox = document.querySelector('#CorrectAnswer select');
 
                         // Remove existing options to prevent duplicates
                         selectBox.innerHTML = '';
-
+                        let char= 'A';
                         // Loop through all choices and add only non-empty values
                         document.querySelectorAll("input[name='Choices[]']").forEach((input) => {
                             if (input.value.trim() !== '') {
-                                selectBox.innerHTML += `<option value="${input.value}">${input.value}</option>`;
+                                selectBox.innerHTML += `<option value="${input.value}" title='${input.value}' class="text-center">${char}</option>`;
+                                char = String.fromCharCode(char.charCodeAt(0) + 1);
                             }
                         });
                     });
                 });
               }
-
+              document.getElementById('Type').addEventListener('change',function(){
+                if(document.getElementById('Type').value === "MCQ" || document.getElementById('Type').value === "MRQ"){
                bindChoiceChange();
+              }
+              else if(document.getElementById('Type').value === "Text"){
+                document.getElementById('CorrectContainer').innerHTML = 
+                `<div class="row mb-1">
+                    <label for="Keywords" class="form-label offset-md-2">Enter the keywords: </label>
+                    <div class="offset-md-2">
+                        <input type="text" class="lightgray form-control border border-0 " id="Keywords" name="CorrectAnswer">
+                    </div>
+                 </div>`;
+              }
+              });
+              
             </script>
             <div class="row justify-content-center mt-5"><button type="submit" class="btn btn-primary btn-sm col-md-1 rounded-pill" name="questions">Submit</button></div>
         </form>

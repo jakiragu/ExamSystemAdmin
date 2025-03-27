@@ -7,7 +7,9 @@ use App\Models\Answers;
 use App\Models\Choices;
 use App\Models\Questions;
 use App\Models\CorrectAnswers;
+use App\Events\markAnswers;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class GradingController extends Controller
 {
@@ -19,7 +21,8 @@ class GradingController extends Controller
             'QuestionText'=>'required',
             'Type'=>'required',
             'QuestionImage'=>'image',
-            'Choices'=>'nullable|array'
+            'Choices'=>'nullable|array',
+            'CorrectAnswer'=>'required'
         ]);
        
        Questions::create([
@@ -43,6 +46,13 @@ class GradingController extends Controller
                 ]);
             }
         }
+        if(is_array($Validate['CorrectAnswer'])){
+           $Validate['CorrectAnswer']=json_encode($Validate['CorrectAnswer']);
+        }
+        CorrectAnswers::create([
+            'QuestionID'=>$q->QuestionID,
+            'AnswerText'=>$Validate['CorrectAnswer']
+        ]);
         return redirect()->back();
         //dd($request);
     }
@@ -56,14 +66,17 @@ class GradingController extends Controller
         return $markingscheme;
     }
     public function markAnswers(){
-        $markingscheme= $this->correctAnswers();
-        print_r($markingscheme);
-        $submittedanswers= Answers::all();
-        foreach($submittedanswers as $submittedanswer){
-            $submittedanswer->text==strtolower($markingscheme[$submittedanswer->QuestionID]) ?
-                $submittedanswer->Status="correct" : $submittedanswer->Status="incorrect";
+        // $markingscheme= $this->correctAnswers();
+        // print_r($markingscheme);
+        // $submittedanswers= Answers::all();
+        // foreach($submittedanswers as $submittedanswer){
+        //     $submittedanswer->text==strtolower($markingscheme[$submittedanswer->QuestionID]) ?
+        //         $submittedanswer->Status="correct" : $submittedanswer->Status="incorrect";
             
-            Answers::where('AnswerID',$submittedanswer->AnswerID)->update(['Status'=>$submittedanswer->Status]);
-        } 
+        //     Answers::where('AnswerID',$submittedanswer->AnswerID)->update(['Status'=>$submittedanswer->Status]);
+        // } 
+       $answers= CorrectAnswers::select('AnswerID','QuestionID','AnswerText')->get()->toArray();
+       \Log::info($answers);
+        broadcast(new markAnswers([$answers]));
     }
 }

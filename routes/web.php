@@ -40,7 +40,7 @@ Route::middleware([CheckAdmin::class])->group(function (){
     Route::get('/ViewAnswers/{id}',[ExamController::class,'viewAnswers'])->name('ViewAnswers');
 });
 Route::get('/makeQuestions', function () {
-    return view('makeQuestions');
+    return view('MakeQuestions');
 });
 
 Route::post('/makeQuestions',[GradingController::class,'makeQuestions'])->name('makeQuestions');

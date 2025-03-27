@@ -8,7 +8,7 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 Broadcast::channel('Timer',function(){
     //
 });
-Broadcast::channel('Terminal',function(){
+Broadcast::channel('Command',function(){
     //
 });
 Broadcast::channel('Questions',function(){

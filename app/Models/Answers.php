@@ -12,4 +12,7 @@ class Answers extends Model
    {
       return $this->belongsTo(Candidates::class, 'CertificationID', 'CertificationID');
    }
+   public function Questions(){
+      return $this->belongsTo(Questions::class, 'QuestionID', 'QuestionID');
+   }
 }
