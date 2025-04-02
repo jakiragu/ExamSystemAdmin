@@ -19,7 +19,7 @@ use Illuminate\Http\Request;
 class TimerController extends Controller
 {
     public function StartTimer(){
-    //    broadcast(new StartTimer());
+       broadcast(new StartTimer());
         $questions = Questions::select('QuestionID', 'title', 'text', 'type', 'ImagePath')->get()->toArray();
         $choices=Choices::select('ChoiceID','ChoiceText','QuestionID')->get()->toArray();
         broadcast(new SendQuestions(['Questions'=>$questions,'Choices'=>$choices]));
