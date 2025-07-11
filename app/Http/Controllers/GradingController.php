@@ -13,7 +13,100 @@ use Illuminate\Support\Facades\Log;
 
 class GradingController extends Controller
 {
-    public function makeQuestions(Request $request){
+    public function markAnswers()
+    {
+        // Step 1: Get marking scheme
+        $markingScheme = $this->correctAnswers();
+
+        // Step 2: Get all submitted answers
+        $submittedAnswers = Answers::all();
+
+        // Step 3: Loop over each submitted answer
+        foreach ($submittedAnswers as $submittedAnswer) {
+            $question = Questions::find($submittedAnswer->QuestionID);
+
+            if (!$question) {
+                continue; // skip if question not found
+            }
+
+            $correctAnswer = strtolower($markingScheme[$submittedAnswer->QuestionID] ?? '');
+            $studentAnswer = strtolower($submittedAnswer->text);
+
+            $status = 'incorrect';
+
+            switch ($question->type) {
+                case 'MCQ':
+                    if ($studentAnswer === $correctAnswer) {
+                        $status = 'correct';
+                    }
+                    break;
+
+                case 'MRQ':
+                    if ($this->isJson($correctAnswer) && $this->isJson($studentAnswer)) {
+                        $correctArray = json_decode($correctAnswer, true);
+                        $studentArray = json_decode($studentAnswer, true);
+                        if (is_array($correctArray) && is_array($studentArray) && $this->compareArrays($correctArray, $studentArray)) {
+                            $status = 'correct';
+                        }
+                    }
+                    break;
+
+                case 'Text':
+                case 'Practical':
+                    $status = 'pending_review'; // we want human to review these
+                    break;
+
+                default:
+                    $status = 'incorrect';
+                    break;
+            }
+
+            // Save result
+            $submittedAnswer->Status = $status;
+            $submittedAnswer->save();
+        }
+
+        return redirect()->back()->with('success', 'Answers have been graded successfully!');
+    }
+
+    /**
+     * Helper to get correct answers
+     */
+    public function correctAnswers()
+    {
+        $markingScheme = [];
+        $answers = CorrectAnswers::all();
+        foreach ($answers as $answer) {
+            $markingScheme[$answer->QuestionID] = $answer->AnswerText;
+        }
+        return $markingScheme;
+    }
+
+    /**
+     * Helper to check if string is JSON
+     */
+    private function isJson($string)
+    {
+        json_decode($string);
+        return (json_last_error() == JSON_ERROR_NONE);
+    }
+
+    /**
+     * Helper to compare two arrays regardless of order
+     */
+    private function compareArrays($array1, $array2)
+    {
+        sort($array1);
+        sort($array2);
+        return $array1 == $array2;
+    }
+    public function releaseResults()
+{
+    \App\Models\Candidates::query()->update(['ResultsReleased' => true]);
+
+    return redirect()->back()->with('success', 'Results have been released to all students.');
+}
+public function makeQuestions(Request $request){
 
         //dd($request);
         $Validate=$request->validate([
@@ -56,27 +149,12 @@ class GradingController extends Controller
         return redirect()->back();
         //dd($request);
     }
+    public function viewQuestions()
+{
+    $questions = \DB::table('questions')->get();
+    return view('ViewQuestions', compact('questions'));
+}
 
-    public function correctAnswers(){
-        $markingscheme=[];
-        $answers= CorrectAnswers::all();
-        foreach($answers as $answer){
-            $markingscheme[$answer->QuestionID]=$answer->AnswerText;
-        }
-        return $markingscheme;
-    }
-    public function markAnswers(){
-        // $markingscheme= $this->correctAnswers();
-        // print_r($markingscheme);
-        // $submittedanswers= Answers::all();
-        // foreach($submittedanswers as $submittedanswer){
-        //     $submittedanswer->text==strtolower($markingscheme[$submittedanswer->QuestionID]) ?
-        //         $submittedanswer->Status="correct" : $submittedanswer->Status="incorrect";
-            
-        //     Answers::where('AnswerID',$submittedanswer->AnswerID)->update(['Status'=>$submittedanswer->Status]);
-        // } 
-       $answers= CorrectAnswers::select('AnswerID','QuestionID','AnswerText')->get()->toArray();
-       \Log::info($answers);
-        broadcast(new markAnswers([$answers]));
-    }
+
+
 }
