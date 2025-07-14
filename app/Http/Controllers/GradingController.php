@@ -154,6 +154,12 @@ public function makeQuestions(Request $request){
     $questions = \DB::table('questions')->get();
     return view('ViewQuestions', compact('questions'));
 }
+public function deleteQuestion($id)
+{
+    \DB::table('questions')->where('QuestionID', $id)->delete();
+    return redirect()->route('ViewQuestions')->with('success', 'Question deleted successfully!');
+}
+
 
 
 

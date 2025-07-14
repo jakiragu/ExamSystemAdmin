@@ -40,7 +40,8 @@ Route::middleware([CheckAdmin::class])->group(function (){
     Route::get('/GradeExam',[GradingController::class,'markAnswers'])->name('GradeExam');	
     Route::get('/ViewAnswers/{id}',[ExamController::class,'viewAnswers'])->name('ViewAnswers');
     Route::get('/ReleaseResults', [GradingController::class, 'releaseResults'])->name('ReleaseResults');
-    
+    Route::delete('/questions/{id}', [App\Http\Controllers\GradingController::class, 'deleteQuestion'])->name('questions.delete');
+
 
 Route::get('/ViewQuestions', [GradingController::class, 'viewQuestions'])->name('ViewQuestions');
 
