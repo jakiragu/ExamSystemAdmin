@@ -4,43 +4,33 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Answers;
-use App\Models\Choices;
+use App\Models\Candidates;
 use App\Models\Questions;
 use App\Models\CorrectAnswers;
-use App\Events\markAnswers;
+use App\Models\Choices;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class GradingController extends Controller
 {
     public function markAnswers()
     {
-        // Step 1: Get marking scheme
         $markingScheme = $this->correctAnswers();
-
-        // Step 2: Get all submitted answers
         $submittedAnswers = Answers::all();
 
-        // Step 3: Loop over each submitted answer
         foreach ($submittedAnswers as $submittedAnswer) {
             $question = Questions::find($submittedAnswer->QuestionID);
-
-            if (!$question) {
-                continue; // skip if question not found
-            }
+            if (!$question) continue;
 
             $correctAnswer = strtolower($markingScheme[$submittedAnswer->QuestionID] ?? '');
             $studentAnswer = strtolower($submittedAnswer->text);
-
             $status = 'incorrect';
 
             switch ($question->type) {
                 case 'MCQ':
-                    if ($studentAnswer === $correctAnswer) {
-                        $status = 'correct';
-                    }
+                    if ($studentAnswer === $correctAnswer) $status = 'correct';
                     break;
-
                 case 'MRQ':
                     if ($this->isJson($correctAnswer) && $this->isJson($studentAnswer)) {
                         $correctArray = json_decode($correctAnswer, true);
@@ -50,18 +40,15 @@ class GradingController extends Controller
                         }
                     }
                     break;
-
                 case 'Text':
                 case 'Practical':
-                    $status = 'pending_review'; // we want human to review these
+                    $status = 'pending_review';
                     break;
-
                 default:
                     $status = 'incorrect';
                     break;
             }
 
-            // Save result
             $submittedAnswer->Status = $status;
             $submittedAnswer->save();
         }
@@ -69,9 +56,6 @@ class GradingController extends Controller
         return redirect()->back()->with('success', 'Answers have been graded successfully!');
     }
 
-    /**
-     * Helper to get correct answers
-     */
     public function correctAnswers()
     {
         $markingScheme = [];
@@ -82,85 +66,113 @@ class GradingController extends Controller
         return $markingScheme;
     }
 
-    /**
-     * Helper to check if string is JSON
-     */
     private function isJson($string)
     {
         json_decode($string);
         return (json_last_error() == JSON_ERROR_NONE);
     }
 
-    /**
-     * Helper to compare two arrays regardless of order
-     */
     private function compareArrays($array1, $array2)
     {
         sort($array1);
         sort($array2);
         return $array1 == $array2;
     }
+
     public function releaseResults()
-{
-    \App\Models\Candidates::query()->update(['ResultsReleased' => true]);
+    {
+        $candidates = Candidates::all();
 
-    return redirect()->back()->with('success', 'Results have been released to all students.');
-}
-public function makeQuestions(Request $request){
+        foreach ($candidates as $candidate) {
+            Mail::raw("Dear {$candidate->FullName}, your results have been released. Please check your portal.", function ($message) use ($candidate) {
+                $message->to($candidate->Email)
+                        ->subject('Your Exam Results are Available');
+            });
 
-        //dd($request);
-        $Validate=$request->validate([
-            'QuestionTitle'=>'required',
-            'QuestionText'=>'required',
-            'Type'=>'required',
-            'QuestionImage'=>'image',
-            'Choices'=>'nullable|array',
-            'CorrectAnswer'=>'required'
+            $candidate->ResultsReleased = true;
+            $candidate->save();
+        }
+
+        return redirect()->back()->with('success', 'Results have been released and emails sent to all candidates!');
+    }
+
+    public function makeQuestions(Request $request)
+    {
+        $Validate = $request->validate([
+            'QuestionTitle' => 'required',
+            'QuestionText' => 'required',
+            'Type' => 'required',
+            'QuestionImage' => 'image',
+            'Choices' => 'nullable|array',
+            'CorrectAnswer' => 'required'
         ]);
-       
-       Questions::create([
+
+        $question = Questions::create([
             'title' => $Validate['QuestionTitle'],
             'text' => $Validate['QuestionText'],
             'type' => $Validate['Type'],
-            	
         ]);
-        $q= Questions::where('title', $request->QuestionTitle)->first();
-       if(isset($request->QuestionImage)){
-        $path = $request->file('QuestionImage')->storeAs('images', "Question_".$q->QuestionID . '.' . $request->file('QuestionImage')->extension(),'public');
-        Questions::where('QuestionID', $q->QuestionID)->update(['ImagePath' => "storage/".$path]);
-    
+
+        if ($request->hasFile('QuestionImage')) {
+            $path = $request->file('QuestionImage')->storeAs('images', "Question_" . $question->QuestionID . '.' . $request->file('QuestionImage')->extension(), 'public');
+            $question->ImagePath = "storage/" . $path;
+            $question->save();
         }
-        if($Validate['Choices']!=null){
-            $choices=array_filter($Validate['Choices']);
-            foreach($choices as $choice){
+
+        if (!empty($Validate['Choices'])) {
+            foreach (array_filter($Validate['Choices']) as $choice) {
                 Choices::create([
-                    'QuestionID'=>$q->QuestionID,
-                    'ChoiceText'=>$choice
+                    'QuestionID' => $question->QuestionID,
+                    'ChoiceText' => $choice
                 ]);
             }
         }
-        if(is_array($Validate['CorrectAnswer'])){
-           $Validate['CorrectAnswer']=json_encode($Validate['CorrectAnswer']);
+
+        if (is_array($Validate['CorrectAnswer'])) {
+            $Validate['CorrectAnswer'] = json_encode($Validate['CorrectAnswer']);
         }
+
         CorrectAnswers::create([
-            'QuestionID'=>$q->QuestionID,
-            'AnswerText'=>$Validate['CorrectAnswer']
+            'QuestionID' => $question->QuestionID,
+            'AnswerText' => $Validate['CorrectAnswer']
         ]);
-        return redirect()->back();
-        //dd($request);
+
+        return redirect()->back()->with('success', 'Question created successfully!');
     }
+
     public function viewQuestions()
-{
-    $questions = \DB::table('questions')->get();
-    return view('ViewQuestions', compact('questions'));
-}
-public function deleteQuestion($id)
-{
-    \DB::table('questions')->where('QuestionID', $id)->delete();
-    return redirect()->route('ViewQuestions')->with('success', 'Question deleted successfully!');
-}
+    {
+        $questions = \DB::table('questions')->get();
+        return view('ViewQuestions', compact('questions'));
+    }
 
+    public function deleteQuestion($id)
+    {
+        \DB::table('questions')->where('QuestionID', $id)->delete();
+        return redirect()->route('ViewQuestions')->with('success', 'Question deleted successfully!');
+    }
 
+    public function manageResults()
+    {
+        $candidates = Candidates::all();
+        return view('ManageResults', compact('candidates'));
+    }
 
+    public function viewCandidateAnswers($id)
+    {
+        $candidate = Candidates::findOrFail($id);
+        $answers = Answers::where('CertificationID', $candidate->CertificationID)->get();
+        $questions = Questions::whereIn('QuestionID', $answers->pluck('QuestionID'))->get()->keyBy('QuestionID');
 
+        return view('ViewCandidateAnswers', compact('candidate', 'answers', 'questions'));
+    }
+
+    public function updateAnswerStatus(Request $request, $answerId)
+    {
+        $answer = Answers::findOrFail($answerId);
+        $answer->Status = $request->input('Status');
+        $answer->save();
+
+        return back()->with('success', 'Answer status updated successfully!');
+    }
 }

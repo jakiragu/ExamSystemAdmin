@@ -1,52 +1,61 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Oracle Database Administration Exam</title>
-    <link rel="stylesheet" href="{{asset('css/style.css')}}">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Login - Oracle Database Exam</title>
+  <link rel="stylesheet" href="{{asset('css/style.css')}}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: #f9f9f9;
+    }
+    .page-title {
+      color: #3F2B96;
+      font-weight: 600;
+    }
+    .btn-purple {
+      background-color: #3F2B96;
+      color: white;
+    }
+    .btn-purple:hover {
+      background-color: #2e2074;
+      color: white;
+    }
+  </style>
 </head>
-  <body>
-<div class=" container bg-light my-5 mx-auto pt-3 justify-content-center" id="background">
+<body>
+  <div class="container my-5 p-5 bg-white shadow rounded-4" style="max-width: 600px;">
+    <h2 class="text-center page-title mb-4">Admin Login</h2>
 
-      <div class="mx-auto row">
-    
-        <div class="col-md-9 offset-md-2 mt-5 mb-3" style="font-size:xx-large;"> Oracle Database Administration Exam</div>
-        
-        <div class="my-5 ms-5">
-            <form action="{{route('Admin.submit')}}" method="post">
-                @csrf
-                @if($errors->any())
-                <div class="alert alert-danger col-md-4 offset-md-2">
-                    <ul>
-                        @foreach($errors->all() as $error)
-                        <li>{{$error}}</li>
-                        @endforeach
-                    </ul>
-                </div>
-                @endif
-                <div class="row my-4 gx-0">
-                  <label for="Email" class="col-md-2 col-form-label offset-md-2 ">Email</label>
-                  <div class="col-md-4">
-                    <input type="email" class="lightgray form-control border border-0 " id="Email" name="email" value="{{old('email')}}">
-                  </div>
-                </div>
-                <div class="row mb-5 pb-5 gx-0">
-                    <label for="Password" class="col-md-2 form-label offset-md-2">Password</label>
-                    <div class="col-md-4">
-                      <input type="password" class="lightgray form-control border border-0 " id="Password" name="password" >
-                </div>
-                  </div>
-                
-        
-                <button type="submit" class="btn btn-primary btn-sm col-md-1 rounded-pill offset-md-4 my-5">Login</button>
-            </form>
-        </div>
-    </div>
-   
-</div>
+    @if($errors->any())
+      <div class="alert alert-danger">
+        <ul class="mb-0">
+          @foreach($errors->all() as $error)
+            <li>{{ $error }}</li>
+          @endforeach
+        </ul>
+      </div>
+    @endif
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-  </body>
+    <form action="{{ route('Admin.submit') }}" method="post">
+      @csrf
+      <div class="mb-3">
+        <label for="Email" class="form-label">Email</label>
+        <input type="email" class="form-control border-0 bg-light" id="Email" name="email" value="{{ old('email') }}" placeholder="admin@example.com" required>
+      </div>
+
+      <div class="mb-4">
+        <label for="Password" class="form-label">Password</label>
+        <input type="password" class="form-control border-0 bg-light" id="Password" name="password" placeholder="••••••••" required>
+      </div>
+
+      <div class="d-grid">
+        <button type="submit" class="btn btn-purple rounded-pill">Login</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 </html>

@@ -1,173 +1,158 @@
 <!doctype html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Oracle Database Administration Exam</title>
-    <link rel="stylesheet" href="{{asset('css/style.css')}}">
-    @vite(['resources/js/app.js', 'resources/js/Timer.js'])
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <title>Create New Question</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-      body {
-        overflow-x: hidden;
-      }
-      #CorrectAnswer option:checked{
-        background-color: whitesmoke;
-        color: gray;
-      }
+        body {
+            background: #f9f9f9;
+        }
+        .page-title {
+            color: #3F2B96;
+            font-weight: 600;
+        }
+        .card {
+            border-radius: 20px;
+        }
+        .btn-purple {
+            background-color: #3F2B96;
+            color: white;
+        }
+        .btn-purple:hover {
+            background-color: #2e2074;
+            color: white;
+        }
+        label {
+            font-weight: 500;
+        }
+        .form-control {
+            background-color: #f1f1f1;
+            border: none;
+        }
     </style>
 </head>
-  <body>
-<div class=" row container bg-light my-5 mx-auto pt-3 justify-content-center" id="background">
-<div class="offset-md-3 mt-4" style="font-size: xx-large;"> Oracle Database Administration Exam</div>
-@if($errors->any())
-    <div class="alert alert-danger col-md-4 offset-md-4 mt-5 text-center">
-        <ul>
-            @foreach($errors->all() as $error)
-                <li>{{$error}}</li>
-            @endforeach
-        </ul>
-@endif
-    <div class="text-start my-5 pt-4">
-        <form action="{{route('makeQuestions')}}" method="post" enctype="multipart/form-data">
-          @csrf
-            <div class="row mb-1">
-              <label for="QuestionTitle" class="col-md-2 col-form-label offset-md-2">Question Title</label>
-              <div class="col-md-4">
-                <input type="text" class="lightgray form-control border border-0  " id="QuestionTitle" name="QuestionTitle">
-              </div>
-            </div>
-            <div class="row mb-1">
-                <label for="QuestionImage" class="col-md-2 col-form-label offset-md-2">Question Image</label>
-                <div class="col-md-4">
-                  <input type="file" class="lightgray form-control border border-0 " id="QuestionImage" name="QuestionImage">
-            </div>
-              </div>
-            <div class="row mb-1">
-                <label for="QuestionText" class="col-md-2 col-form-label offset-md-2">Question Text</label>
-                <div class="col-md-4">
-                    <input type="text" class="lightgray form-control border border-0 " id="QuestionText" name="QuestionText">
-                </div>
-            </div>
-            <div class="row mb-1">
-                <label for="Type" class="col-md-2 col-form-label offset-md-2">Type</label>
-                <div class="col-md-4">
-                    <select class="lightgray form-control border border-0 " id="Type" name="Type">
-                        <option value="" selected disabled>Select Type</option>
-                        <option value="MCQ">MCQ</option>
-                        <option value="MRQ">MRQ</option><!--Multiple Response Questions-->
-                        <option value="Text">Text</option>
-                    </select>
-                    <!-- <input type="text" class="lightgray form-control border border-0 " id="Type" name="Type"> -->
-                </div>
-            </div>
-            <hr class="w-75 mx-auto my-5">
-            <div id="Choices"></div>
-            <script>
-              document.getElementById('Type').addEventListener('change', function() {
-                let value = this.value;
-                if (value === "MCQ" || value === "MRQ") {
-                  document.getElementById('Choices').innerHTML = `
-                    <div class="row mb-1">
-                      <label for="Choice1" class="col-md-2 col-form-label offset-md-2">A :</label>
-                      <div class="col-md-4">
-                        <input type="text" class="lightgray form-control border border-0 " id="Choice1" name="Choices[]">
-                      </div>
-                    </div>
-                    <div class="row mb-1">
-                      <label for="Choice2" class="col-md-2 col-form-label offset-md-2">B :</label>
-                      <div class="col-md-4">
-                        <input type="text" class="lightgray form-control border border-0 " id="Choice2" name="Choices[]">
-                      </div>
-                    </div>
-                    <div class="row mb-1">
-                      <label for="Choice3" class="col-md-2 col-form-label offset-md-2">C :</label>
-                      <div class="col-md-4">
-                        <input type="text" class="lightgray form-control border border-0 " id="Choice3" name="Choices[]">
-                      </div>
-                    </div>
-                    <div class="row mb-1">
-                      <label for="Choice4" class="col-md-2 col-form-label offset-md-2">D :</label>
-                      <div class="col-md-4">
-                        <input type="text" class="lightgray form-control border border-0 " id="Choice4" name="Choices[]">
-                      </div>
-                    </div>
-                    <div class="row mb-1">
-                      <label for="Choice5" class="col-md-2 col-form-label offset-md-2">E :</label>
-                      <div class="col-md-4">
-                        <input type="text" class="lightgray form-control border border-0 " id="Choice5" name="Choices[]">
-                      </div>
-                    </div>
-                  `;
-                  bindChoiceChange();
-                } else {
-                  document.getElementById('Choices').innerHTML = 
-                  `<div class="row mb-1" style='visibility:hidden'>
-                      <label for="Choice1" class="col-md-2 col-form-label offset-md-2">A :</label>
-                      <div class="col-md-4">
-                        <input type="text" class="lightgray form-control border border-0 " id="Choice1" name="Choices[] value='' ">
-                      </div>
-                    </div>
-                  `;
-                }
-              });
-            </script>
-            <hr class="w-75 mx-auto my-5">
-            <div id="CorrectAnswer">
-                <div class="row mb-1">
-                    <label for="CorrectAnswer" class="col-md-2 col-form-label offset-md-2"><b>Correct Answer: </b></label>
-                    <div class="col-md-4" id="CorrectContainer">
-                        
-                        <!-- <input type="text" class="lightgray form-control border border-0 " id="Type" name="Type"> -->
-                    </div>
-                </div>
-            </div>
-            <script>
-              function bindChoiceChange(){
-                document.getElementById('CorrectContainer').innerHTML =`<select class="lightgray form-control border border-0 form-select" id="CorrectAnswer" name="CorrectAnswer[]" multiple>
-                            <option value="" selected disabled >Choose the correct answer/answers</option>
-                           
-                        </select>`;
-                  document.querySelectorAll("input[name='Choices[]']").forEach((choice) => {
-                    choice.addEventListener('change', function() {
-                        let selectBox = document.querySelector('#CorrectAnswer select');
+<body>
+<div class="container my-5">
+    <div class="text-center mb-4">
+        <h2 class="page-title">Create New Question</h2>
+    </div>
 
-                        // Remove existing options to prevent duplicates
-                        selectBox.innerHTML = '';
-                        let char= 'A';
-                        // Loop through all choices and add only non-empty values
-                        document.querySelectorAll("input[name='Choices[]']").forEach((input) => {
-                            if (input.value.trim() !== '') {
-                                selectBox.innerHTML += `<option value="${input.value}" title='${input.value}' class="text-center">${char}</option>`;
-                                char = String.fromCharCode(char.charCodeAt(0) + 1);
-                            }
-                        });
-                    });
-                });
-              }
-              document.getElementById('Type').addEventListener('change',function(){
-                if(document.getElementById('Type').value === "MCQ" || document.getElementById('Type').value === "MRQ"){
-               bindChoiceChange();
-              }
-              else if(document.getElementById('Type').value === "Text"){
-                document.getElementById('CorrectContainer').innerHTML = 
-                `<div class="row mb-1">
-                    <label for="Keywords" class="form-label offset-md-2">Enter the keywords: </label>
-                    <div class="offset-md-2">
-                        <input type="text" class="lightgray form-control border border-0 " id="Keywords" name="CorrectAnswer">
-                    </div>
-                 </div>`;
-              }
-              });
-              
-            </script>
-            <div class="row justify-content-center mt-5"><button type="submit" class="btn btn-primary btn-sm col-md-1 rounded-pill" name="questions">Submit</button></div>
+    @if($errors->any())
+        <div class="alert alert-danger text-center">
+            <ul class="mb-0">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    <div class="card p-4 shadow-sm">
+        <form action="{{ route('makeQuestions') }}" method="post" enctype="multipart/form-data">
+            @csrf
+
+            <div class="mb-3">
+                <label for="QuestionTitle" class="form-label">Question Title</label>
+                <input type="text" class="form-control" id="QuestionTitle" name="QuestionTitle">
+            </div>
+
+            <div class="mb-3">
+                <label for="QuestionImage" class="form-label">Question Image (optional)</label>
+                <input type="file" class="form-control" id="QuestionImage" name="QuestionImage">
+            </div>
+
+            <div class="mb-3">
+                <label for="QuestionText" class="form-label">Question Text</label>
+                <input type="text" class="form-control" id="QuestionText" name="QuestionText">
+            </div>
+
+            <div class="mb-3">
+                <label for="Type" class="form-label">Type</label>
+                <select class="form-control" id="Type" name="Type">
+                    <option value="" disabled selected>Select Type</option>
+                    <option value="MCQ">MCQ</option>
+                    <option value="MRQ">MRQ</option>
+                    <option value="Text">Text</option>
+                </select>
+            </div>
+
+            <div id="Choices"></div>
+
+            <div id="CorrectAnswer" class="mt-3"></div>
+
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-purple rounded-pill px-4">Submit</button>
+            </div>
         </form>
     </div>
-    <!-- <div class="row justify-content-center pb-5">*If a field does not apply to you, fill in N/A</div> -->
-    
+
+    <div class="text-center mt-4">
+        <a href="{{ route('ViewQuestions') }}" class="btn btn-purple rounded-pill">
+            <i class="bi bi-arrow-left"></i> Back to Questions
+        </a>
+    </div>
 </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-  </body>
+<script>
+document.getElementById('Type').addEventListener('change', function() {
+    const value = this.value;
+    let choicesHtml = '';
+    let correctHtml = '';
+
+    if (value === "MCQ" || value === "MRQ") {
+        for (let i = 1; i <= 5; i++) {
+            choicesHtml += `
+                <div class="mb-3">
+                    <label for="Choice${i}" class="form-label">Choice ${String.fromCharCode(64 + i)}</label>
+                    <input type="text" class="form-control" id="Choice${i}" name="Choices[]">
+                </div>
+            `;
+        }
+        correctHtml = `
+            <label for="CorrectAnswerSelect" class="form-label">Select Correct Answer(s)</label>
+            <select class="form-control" id="CorrectAnswerSelect" name="CorrectAnswer[]" multiple>
+                <option value="" disabled>Select options above first</option>
+            </select>
+        `;
+    } else if (value === "Text") {
+        correctHtml = `
+            <label for="Keywords" class="form-label">Correct Keywords</label>
+            <input type="text" class="form-control" id="Keywords" name="CorrectAnswer">
+        `;
+    }
+
+    document.getElementById('Choices').innerHTML = choicesHtml;
+    document.getElementById('CorrectAnswer').innerHTML = correctHtml;
+
+    if (value === "MCQ" || value === "MRQ") {
+        document.querySelectorAll("input[name='Choices[]']").forEach(choice => {
+            choice.addEventListener('input', updateCorrectOptions);
+        });
+    }
+});
+
+function updateCorrectOptions() {
+    let select = document.getElementById('CorrectAnswerSelect');
+    if (!select) return;
+
+    select.innerHTML = '';
+    let char = 'A';
+
+    document.querySelectorAll("input[name='Choices[]']").forEach((input) => {
+        if (input.value.trim() !== '') {
+            let option = document.createElement('option');
+            option.value = input.value;
+            option.text = `${char}: ${input.value}`;
+            select.appendChild(option);
+            char = String.fromCharCode(char.charCodeAt(0) + 1);
+        }
+    });
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 </html>

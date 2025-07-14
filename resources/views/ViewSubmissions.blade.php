@@ -1,44 +1,89 @@
 <!doctype html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Oracle Database Administration Exam</title>
-    <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-    <!-- @vite(['resources/js/app.js', 'resources/js/Timer.js']) -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <title>Student Submissions</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f9f9f9;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .page-title {
+            color: #3F2B96;
+            font-weight: 600;
+        }
+        .card-header {
+            background-color: #3F2B96;
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+        .btn-purple {
+            background-color: #3F2B96;
+            color: white;
+        }
+        .btn-purple:hover {
+            background-color: #2e2074;
+            color: white;
+        }
+        .view-link {
+            color: #FD7E14;
+            font-weight: 500;
+            text-decoration: none;
+        }
+        .view-link:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
-  <body>
-  <div class=" row container bg-light my-5 mx-auto pt-3 justify-content-center" id="background">
-
-   
-    <div class="ms-1 justify-content-center row">
-    
-        <div class="col-md-8 my-4 text-center" style="font-size:xx-large;"> Student Submissions: </div>
-        
-        <div class="col-md-6 mb-3 ">
-        <table class="table text-center border border-0 mb-3" id="background">
-    <thead>
-        <tr>
-        <th scope="col">CertificationID</th>
-        <th scope="col">Full Name</th>
-        <th scope="col">Submission</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach($students as $student)
-        <tr>
-        <th scope="row">{{$student->CertificationID}}</th>
-        <td>{{$student->FullName}}</td>
-        <td><a href="{{route('ViewAnswers', ['id'=>$student->CertificationID])}}">View Submission</a></td>
-        </tr>
-        @endforeach
-
-    </tbody>
-    </table>
-        </div>
+<body>
+<div class="container">
+    <div class="text-center mb-4">
+        <h2 class="page-title">Student Submissions</h2>
     </div>
-    <a class="btn btn-primary  btn-sm col-md-1 me-2 mt-5 mb-3 offset-md-11 rounded-pill text-opacity-25" href="{{route('adminDashboard')}}" role="button">Back</a>
+
+    @if($students->isEmpty())
+        <div class="alert alert-info text-center">No submissions found yet.</div>
+    @else
+        <div class="card shadow-sm rounded-4">
+            <div class="card-header">Submitted Candidates</div>
+            <div class="table-responsive">
+                <table class="table table-bordered mb-0 text-center align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Certification ID</th>
+                            <th>Full Name</th>
+                            <th>Submission</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($students as $student)
+                            <tr>
+                                <td>{{ $student->CertificationID }}</td>
+                                <td>{{ $student->FullName }}</td>
+                                <td>
+                                    <a href="{{ route('ViewAnswers', ['id' => $student->CertificationID]) }}" class="view-link">
+                                        <i class="bi bi-eye-fill"></i> View Submission
+                                    </a>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
+
+    <a class="btn btn-purple btn-sm rounded-pill mt-4" href="{{ route('adminDashboard') }}">
+        <i class="bi bi-arrow-left"></i> Back
+    </a>
 </div>
-  </body>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 </html>

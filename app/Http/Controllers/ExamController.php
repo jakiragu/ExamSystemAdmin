@@ -68,4 +68,12 @@ public function viewAnswers($id){
         session()->flush();
         return redirect()->route('register.create');
     }
+    public function deleteStudent($id)
+{
+    $student = \App\Models\Candidates::where('CertificationID', $id)->firstOrFail();
+    $student->delete();
+
+    return redirect()->back()->with('success', 'Student deleted successfully!');
+}
+
 }
