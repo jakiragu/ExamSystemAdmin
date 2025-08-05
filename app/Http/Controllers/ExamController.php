@@ -2,78 +2,142 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use App\Models\Candidates;
 use App\Models\Questions;
 use App\Models\Answers;
 use App\Models\Choices;
-use Illuminate\Http\Request;
+use App\Models\ExamCatalog;
 
 class ExamController extends Controller
 {
-    public function viewStudentInfo(){
-        $students=Candidates::all();
-        return view('studentInfo',compact('students'));
-    }
-    public function viewSubmissions(){
-        $students=Candidates::whereHas('Answers')->get();
-        return view('ViewSubmissions',compact('students'));
-    }
-    public function registerCandidates(Request $request){
-        $validatedData=$request->validate([
-            'FullName'=>"required",
-            'Email'=>"email|required",
-            'CertificationID'=>'required',
-            'Organization'=>'required',
-            'Occupation'=>'required',
-            'MobileNo'=>'required'
-        ]);
-        Candidates::create($validatedData);
-     
-    }
-public function viewAnswers($id){
-        $answers=Answers::where('CertificationID',$id)->get();
-        $question=[];
-        foreach($answers as $answer){
-        $QID=$answer->QuestionID;
-        $question[$QID]=Questions::where('QuestionID',$QID)->first();
-        }
-        $student=Candidates::where('CertificationID',$id)->first();
-        return view('ViewAnswers',compact('answers','question','student'));	
-  }
-    public function showQuestions($id=null){
-      $Question= $id?Questions::where('QuestionID',$id)->first(): Questions::orderby('QuestionID')->first();
-      $Choices=Choices::where('QuestionID',$Question['QuestionID'])->get() ?? "";
-      $Answer= session($Question['QuestionID'],"");
-      return view('Questions',compact('Question','Answer','Choices'));
+    // -------------------- STUDENT MANAGEMENT --------------------
 
+    public function showAllStudents()
+    {
+        $candidates = Candidates::all();
+        return view('studentInfo', compact('candidates'));
     }
-    public function examOverview(){
-        $Questions=Questions::select('QuestionID','title')->get();
-        return view('ExamOverview',compact('Questions'));
+
+    public function showSubmittedStudents()
+    {
+        $candidates = Candidates::has('answers')->withCount('answers')->get();
+        return view('ViewSubmissions', compact('candidates'));
     }
-    public function submitExam(Request $request){
-        //print_r($request->answers);
-        $answers=json_decode($request->answers);
-        //print_r($answers);
-        $candidate=session('candidate');
-        foreach($answers as $question=>$answer){
-            $answer=strtolower($answer);
+
+    public function deleteStudent($id)
+    {
+        $student = Candidates::where('CertificationID', $id)->firstOrFail();
+        $student->delete();
+
+        return back()->with('success', 'Student deleted successfully!');
+    }
+
+    public function registerStudent(Request $request)
+    {
+        $validated = $request->validate([
+            'FullName' => 'required',
+            'Email' => 'required|email',
+            'CertificationID' => 'required',
+            'Organization' => 'required',
+            'Occupation' => 'required',
+            'MobileNo' => 'required'
+        ]);
+
+        Candidates::create($validated);
+    }
+
+    // -------------------- STUDENT EXAM FLOW --------------------
+
+    public function showExamQuestions($id = null)
+    {
+        $question = $id 
+            ? Questions::where('QuestionID', $id)->first() 
+            : Questions::orderBy('QuestionID')->first();
+
+        $choices = Choices::where('QuestionID', $question->QuestionID)->get() ?? [];
+        $answer = session($question->QuestionID, "");
+
+        return view('Questions', compact('question', 'choices', 'answer'));
+    }
+
+    public function submitStudentExam(Request $request)
+    {
+        $answers = json_decode($request->answers);
+        $certificationID = session('candidate');
+
+        foreach ($answers as $questionID => $answer) {
             Answers::create([
-                'CertificationID'=>$candidate,
-                'QuestionID'=>$question,
-                'text'=>$answer
+                'CertificationID' => $certificationID,
+                'QuestionID' => $questionID,
+                'text' => strtolower($answer)
             ]);
         }
+
         session()->flush();
         return redirect()->route('register.create');
     }
-    public function deleteStudent($id)
-{
-    $student = \App\Models\Candidates::where('CertificationID', $id)->firstOrFail();
-    $student->delete();
 
-    return redirect()->back()->with('success', 'Student deleted successfully!');
-}
+    public function viewStudentAnswers($certificationID)
+    {
+        $answers = Answers::where('CertificationID', $certificationID)->get();
 
+        $questions = $answers->mapWithKeys(function ($answer) {
+            return [$answer->QuestionID => Questions::where('QuestionID', $answer->QuestionID)->first()];
+        });
+
+        $student = Candidates::where('CertificationID', $certificationID)->first();
+
+        return view('ViewAnswers', compact('answers', 'questions', 'student'));
+    }
+
+    public function examOverview()
+    {
+        $questions = Questions::select('QuestionID', 'title')->get();
+        return view('ExamOverview', compact('questions'));
+    }
+
+    // -------------------- ADMIN CONTROLS --------------------
+
+    public function updateExamStatus($id, $status)
+    {
+        $exam = ExamCatalog::findOrFail($id);
+
+        switch ($status) {
+            case 'start':
+                $exam->update([
+                    'status' => 'active',
+                    'start_time' => now(),
+                    'is_visible_to_students' => true
+                ]);
+                break;
+
+            case 'pause':
+                $exam->update([
+                    'status' => 'paused',
+                    'is_visible_to_students' => false
+                ]);
+                break;
+
+            case 'stop':
+                $exam->update([
+                    'status' => 'stopped',
+                    'end_time' => now(),
+                    'is_visible_to_students' => false
+                ]);
+                break;
+
+            case 'reset':
+                $exam->update([
+                    'status' => 'draft',
+                    'start_time' => null,
+                    'end_time' => null,
+                    'is_visible_to_students' => false
+                ]);
+                break;
+        }
+
+        return redirect()->route('adminDashboard')
+                         ->with('success', "Exam $status-ed successfully.");
+    }
 }

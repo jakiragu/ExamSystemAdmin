@@ -6,13 +6,11 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('candidates', function (Blueprint $table) {
-            $table->string('CertificationID')->primary();
+            $table->id(); // auto-increment primary key
+            $table->string('CertificationID')->unique(); // optional for now
             $table->string('FullName');
             $table->string('Email');
             $table->string('Organization');
@@ -22,9 +20,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('candidates');

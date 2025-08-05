@@ -7,4 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class choices extends Model
 {
    protected $guarded=[];
+
+   public function question()
+   {
+       return $this->belongsTo(ExamQuestion::class, 'question_id');
+   }
 }

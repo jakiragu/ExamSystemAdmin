@@ -12,11 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('choices', function (Blueprint $table) {
-            $table->id('ChoiceID');
-            $table->string('ChoiceText');
-            $table->unsignedBigInteger('QuestionID');
+            $table->id();
+            $table->unsignedBigInteger('question_id');
+            $table->string('choice_text');
+            $table->boolean('is_correct')->default(false);
             $table->timestamps();
-            $table->foreign('QuestionID')->references('QuestionID')->on('questions')->onDelete('cascade');
+
+            $table->foreign('question_id')
+                  ->references('id')
+                  ->on('exam_questions')
+                  ->onDelete('cascade');
         });
     }
 

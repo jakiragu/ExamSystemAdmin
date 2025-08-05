@@ -14,10 +14,10 @@ class CheckAdmin
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
-    {
-        if (!session('admin_logged_in')) {
-            return redirect()->route('Admin');
-        }   
-        return $next($request);
+  {
+    if (!Auth::guard('admin')->check()) {
+        return redirect()->route('Admin');
     }
+    return $next($request);
+}
 }

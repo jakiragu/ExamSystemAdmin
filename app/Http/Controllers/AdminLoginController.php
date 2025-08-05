@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -10,64 +9,59 @@ use App\Models\Admins;
 
 class AdminLoginController extends Controller
 {
-    public function index()
-    {
-        return view('AdminSignUp');
-    }
-
     public function create()
     {
-        return view('AdminLogin');
+        return view('AdminLogin'); // your Blade file: resources/views/AdminLogin.blade.php
     }
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-        'AdminName' => 'required',
-        'Email' => 'required|email',
-        'password' => 'required',
-    ]);
-    
-    Admins::create([
-        'AdminName' => $validated['AdminName'],
-        'Email'=> $validated['Email'],
-        'password' => Hash::make($validated['password']), 
-    ]);
-    
-    return redirect()->route('Admin');
-    }
-    
+
     public function login(Request $request)
     {
-        $validated=$request->validate([
-            'email'=>'required|email',
-            'password'=>'required'
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
         ]);
-        
-        $admin=Admins::where('Email',$validated['email'])->first();
-        if($admin && Hash::check($validated['password'],$admin->password)){
-            session()->flush();            
-            session(['admin'=>$admin, 'admin_logged_in'=>true, 'admin_name'=>$admin->AdminName]);
-            //dd(session()->all());
+
+        $admin = Admins::where('email', $request->email)->first();
+
+        if ($admin && Hash::check($request->password, $admin->password)) {
+            Auth::guard('admin')->login($admin);
+            $request->session()->regenerate();
             return redirect()->route('adminDashboard');
-
         }
-        // $credentials=['Email'=>$validated['Email'],'password'=>$validated['password']];
-        // if (Auth::attempt($credentials)) {
 
-        //     return redirect()->intended('/adminDashboard'); 
-        // }
         return back()->withErrors([
-            'login' => 'These credentials do not match our records.',
+            'login' => 'Invalid email or password.',
         ])->withInput();
     }
 
-    public function logout(Request $request){
-        Auth::logout();
-
+    public function logout(Request $request)
+    {
+        Auth::guard('admin')->logout();
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
-        return redirect('/Admin');
+        return redirect()->route('Admin');
     }
 
+    // Optional for Admin Sign Up
+    public function index()
+    {
+        return view('AdminSignup');
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'AdminName' => 'required|string|max:255',
+            'email' => 'required|email|unique:admins',
+            'password' => 'required|string|min:6|confirmed',
+        ]);
+
+        Admins::create([
+            'AdminName' => $request->AdminName,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
+
+        return redirect()->route('Admin')->with('success', 'Admin created successfully!');
+    }
 }

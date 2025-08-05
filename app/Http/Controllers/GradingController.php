@@ -16,67 +16,112 @@ class GradingController extends Controller
 {
     public function markAnswers()
     {
-        $markingScheme = $this->correctAnswers();
+        $markingScheme = $this->loadCorrectAnswers();
         $submittedAnswers = Answers::all();
 
-        foreach ($submittedAnswers as $submittedAnswer) {
-            $question = Questions::find($submittedAnswer->QuestionID);
+        foreach ($submittedAnswers as $answer) {
+            $question = Questions::find($answer->QuestionID);
             if (!$question) continue;
 
-            $correctAnswer = strtolower($markingScheme[$submittedAnswer->QuestionID] ?? '');
-            $studentAnswer = strtolower($submittedAnswer->text);
+            $correctAnswer = strtolower($markingScheme[$answer->QuestionID] ?? '');
+            $studentAnswer = strtolower($answer->text);
             $status = 'incorrect';
+            $score = 0;
 
-            switch ($question->type) {
-                case 'MCQ':
-                    if ($studentAnswer === $correctAnswer) $status = 'correct';
+            switch (strtolower($question->type)) {
+                case 'mcq':
+                    $status = ($studentAnswer === $correctAnswer) ? 'correct' : 'incorrect';
+                    $score = ($status === 'correct') ? ($question->weight ?? 1) : 0;
                     break;
-                case 'MRQ':
+
+                case 'mrq':
                     if ($this->isJson($correctAnswer) && $this->isJson($studentAnswer)) {
                         $correctArray = json_decode($correctAnswer, true);
                         $studentArray = json_decode($studentAnswer, true);
-                        if (is_array($correctArray) && is_array($studentArray) && $this->compareArrays($correctArray, $studentArray)) {
-                            $status = 'correct';
+                        if (is_array($correctArray) && is_array($studentArray)) {
+                            $intersect = array_intersect($studentArray, $correctArray);
+                            $score = round((count($intersect) / count($correctArray)) * ($question->weight ?? 1), 2);
+                            $status = ($score > 0) ? 'partially_correct' : 'incorrect';
+                            if ($this->compareArrays($correctArray, $studentArray)) $status = 'correct';
                         }
                     }
                     break;
-                case 'Text':
-                case 'Practical':
+
+                case 'practical':
+                    $grading = $this->gradePracticalAnswerViaDocker($answer, $question);
+                    $status = $grading['status'];
+                    $score = $grading['score'];
+                    break;
+
+                case 'text':
+                    // You can use NLP or manual review later
                     $status = 'pending_review';
                     break;
+
                 default:
                     $status = 'incorrect';
                     break;
             }
 
-            $submittedAnswer->Status = $status;
-            $submittedAnswer->save();
+            $answer->Status = $status;
+            $answer->Score = $score;
+            $answer->save();
         }
 
         return redirect()->back()->with('success', 'Answers have been graded successfully!');
     }
 
-    public function correctAnswers()
+    private function loadCorrectAnswers()
     {
-        $markingScheme = [];
-        $answers = CorrectAnswers::all();
-        foreach ($answers as $answer) {
-            $markingScheme[$answer->QuestionID] = $answer->AnswerText;
-        }
-        return $markingScheme;
+        return CorrectAnswers::pluck('AnswerText', 'QuestionID')->map(fn($val) => strtolower($val))->toArray();
     }
 
     private function isJson($string)
     {
         json_decode($string);
-        return (json_last_error() == JSON_ERROR_NONE);
+        return (json_last_error() === JSON_ERROR_NONE);
     }
 
-    private function compareArrays($array1, $array2)
+    private function compareArrays($a, $b)
     {
-        sort($array1);
-        sort($array2);
-        return $array1 == $array2;
+        sort($a);
+        sort($b);
+        return $a == $b;
+    }
+
+    private function gradePracticalAnswerViaDocker($answer, $question)
+    {
+        $status = 'error';
+        $score = 0;
+
+        try {
+            // Assuming you have lab info stored with each question
+            $dockerImage = $question->docker_image ?? 'python:3.10';
+            $extension = $question->language_ext ?? 'py';
+            $interpreter = $question->interpreter ?? 'python';
+
+            $code = $answer->text;
+            $expected = trim($question->expected_output);
+            $input = $question->sample_input ?? '';
+
+            $filename = storage_path("app/code_" . uniqid() . ".{$extension}");
+            file_put_contents($filename, $code);
+
+            $command = "docker run --rm -v {$filename}:/code.{$extension} {$dockerImage} {$interpreter} /code.{$extension} {$input}";
+            $result = shell_exec($command);
+            unlink($filename);
+
+            if (trim($result) === $expected) {
+                $score = $question->weight ?? 1;
+                $status = 'correct';
+            } else {
+                $status = 'incorrect';
+            }
+        } catch (\Exception $e) {
+            Log::error("Docker grading failed: " . $e->getMessage());
+        }
+
+        return compact('status', 'score');
     }
 
     public function releaseResults()
@@ -98,19 +143,19 @@ class GradingController extends Controller
 
     public function makeQuestions(Request $request)
     {
-        $Validate = $request->validate([
+        $validate = $request->validate([
             'QuestionTitle' => 'required',
             'QuestionText' => 'required',
             'Type' => 'required',
-            'QuestionImage' => 'image',
+            'QuestionImage' => 'image|nullable',
             'Choices' => 'nullable|array',
             'CorrectAnswer' => 'required'
         ]);
 
         $question = Questions::create([
-            'title' => $Validate['QuestionTitle'],
-            'text' => $Validate['QuestionText'],
-            'type' => $Validate['Type'],
+            'title' => $validate['QuestionTitle'],
+            'text' => $validate['QuestionText'],
+            'type' => $validate['Type'],
         ]);
 
         if ($request->hasFile('QuestionImage')) {
@@ -119,8 +164,8 @@ class GradingController extends Controller
             $question->save();
         }
 
-        if (!empty($Validate['Choices'])) {
-            foreach (array_filter($Validate['Choices']) as $choice) {
+        if (!empty($validate['Choices'])) {
+            foreach (array_filter($validate['Choices']) as $choice) {
                 Choices::create([
                     'QuestionID' => $question->QuestionID,
                     'ChoiceText' => $choice
@@ -128,13 +173,13 @@ class GradingController extends Controller
             }
         }
 
-        if (is_array($Validate['CorrectAnswer'])) {
-            $Validate['CorrectAnswer'] = json_encode($Validate['CorrectAnswer']);
+        if (is_array($validate['CorrectAnswer'])) {
+            $validate['CorrectAnswer'] = json_encode($validate['CorrectAnswer']);
         }
 
         CorrectAnswers::create([
             'QuestionID' => $question->QuestionID,
-            'AnswerText' => $Validate['CorrectAnswer']
+            'AnswerText' => $validate['CorrectAnswer']
         ]);
 
         return redirect()->back()->with('success', 'Question created successfully!');
@@ -142,13 +187,13 @@ class GradingController extends Controller
 
     public function viewQuestions()
     {
-        $questions = \DB::table('questions')->get();
+        $questions = Questions::all();
         return view('ViewQuestions', compact('questions'));
     }
 
     public function deleteQuestion($id)
     {
-        \DB::table('questions')->where('QuestionID', $id)->delete();
+        Questions::where('QuestionID', $id)->delete();
         return redirect()->route('ViewQuestions')->with('success', 'Question deleted successfully!');
     }
 

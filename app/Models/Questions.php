@@ -6,14 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Questions extends Model
 {
-    protected $guarded = [];
-
     protected $primaryKey = 'QuestionID';
-    public $incrementing = true;
-    protected $keyType = 'int';
 
-    public function Answers()
+    protected $fillable = [
+        'title', 'text', 'type', 'ImagePath'
+    ];
+
+    public function examVersions()
     {
-        return $this->hasOne(Answers::class, 'QuestionID', 'QuestionID');
+        return $this->hasMany(ExamQuestion::class, 'question_id');
     }
 }

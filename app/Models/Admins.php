@@ -1,13 +1,27 @@
 <?php
 
 namespace App\Models;
+
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
 class Admins extends Authenticatable
 {
-    protected $primaryKey = 'AdminName';
-    public $incrementing = false; 
-    protected $keyType = 'string';
-    
-    protected $guarded=[];
+       use Notifiable;
+       
+     protected $guard = 'admin';
+
+    protected $table = 'admins';
+
+    protected $fillable = [
+        'AdminName',
+        'Email',
+        'password',
+        'is_super',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
 }

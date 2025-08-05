@@ -42,12 +42,12 @@
       @csrf
       <div class="mb-3">
         <label for="Email" class="form-label">Email</label>
-        <input type="email" class="form-control border-0 bg-light" id="Email" name="email" value="{{ old('email') }}" placeholder="admin@example.com" required>
+        <input type="email" class="form-control border-0 bg-light" id="Email" name="email" value="{{ old('email') }}" placeholder="" required>
       </div>
 
       <div class="mb-4">
         <label for="Password" class="form-label">Password</label>
-        <input type="password" class="form-control border-0 bg-light" id="Password" name="password" placeholder="••••••••" required>
+        <input type="password" class="form-control border-0 bg-light" id="Password" name="password" placeholder="" required>
       </div>
 
       <div class="d-grid">

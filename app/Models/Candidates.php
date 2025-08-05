@@ -5,13 +5,24 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 class Candidates extends Model
-{   
-    protected $primaryKey = 'CertificationID';
-    public $incrementing = false; 
-    protected $keyType = 'string';
-    protected $guarded=[];
-    
-    public function Answers(){
-        return $this->hasMany(Answers::class,'CertificationID','CertificationID');
+{
+    // Use 'id' as primary key for consistency
+    protected $primaryKey = 'id';
+    public $incrementing = true;
+    protected $keyType = 'int';
+
+    protected $fillable = [
+        'CertificationID',
+        'FullName',
+        'Email',
+        'Organization',
+        'Occupation',
+        'MobileNo',
+        'ResultsReleased',
+    ];
+
+    public function Answers()
+    {
+        return $this->hasMany(Answers::class, 'candidate_id');
     }
 }
