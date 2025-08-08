@@ -24,3 +24,4 @@ Route::get('/student/attempts/{attempt_id}/next', [StudentExamController::class,
 Route::post('/student/attempts/{attempt_id}/answer', [StudentExamController::class, 'submitAnswer']);
 Route::post('/student/attempts/{attempt_id}/finish', [StudentExamController::class, 'finishExam']);
 Route::get('/exam-catalogs/{id}', [ExamCatalogController::class, 'show']);
+

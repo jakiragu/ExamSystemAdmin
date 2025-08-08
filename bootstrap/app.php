@@ -14,7 +14,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->alias(['is_super' => IsSuperAdmin::class]);
+        // Register global middleware here
+        $middleware->append([
+            // Add global middleware classes if needed
+        ]);
+
+        // Register route middleware aliases here
+        $middleware->alias([
+            'is_super' => IsSuperAdmin::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

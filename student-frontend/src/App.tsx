@@ -1,27 +1,20 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
-import StudentRegistration from './pages/StudentRegister';
+import StudentRegistration from './pages/StudentRegistration.tsx';
 import ExamLanding from './pages/ExamLanding';
-import ExamInstructions from './pages/ExamInstructions';
-import NotFound from './pages/NotFound';
+import StudentDashboard from './pages/StudentDashboard'; // ✅ Import
+import ExamInstructions from './pages/ExamInstructions.tsx';
+import NotFound from './pages/NotFound.tsx';
 
 const App: React.FC = () => {
   return (
     <Routes>
-      {/* Default route: redirect to /register */}
       <Route path="/" element={<Navigate to="/register" />} />
-
-      {/* Registration/Login */}
       <Route path="/register" element={<StudentRegistration />} />
-
-      {/* Exam landing page (after registration/login) */}
+      <Route path="/dashboard" element={<StudentDashboard />} /> {/* ✅ Add this */}
       <Route path="/exam-landing" element={<ExamLanding />} />
-
-      {/* Exam instructions after selecting exam */}
       <Route path="/exam-instructions/:id" element={<ExamInstructions />} />
-
-      {/* Catch-all for unknown routes */}
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

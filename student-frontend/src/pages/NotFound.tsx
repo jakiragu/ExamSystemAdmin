@@ -1,11 +1,11 @@
-// src/pages/NotFound.tsx
 import React from 'react';
 
-const NotFound: React.FC = () => (
-  <div style={{ padding: '2rem', textAlign: 'center' }}>
-    <h2>404 - Page Not Found</h2>
-    <p>The page you’re looking for doesn’t exist.</p>
-  </div>
-);
+const NotFound: React.FC = () => {
+  return (
+    <div className="p-6 text-center">
+      <h1 className="text-3xl font-bold text-red-500">404 - Page Not Found</h1>
+    </div>
+  );
+};
 
 export default NotFound;

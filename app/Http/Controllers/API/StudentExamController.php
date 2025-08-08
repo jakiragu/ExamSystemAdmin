@@ -76,17 +76,23 @@ public function showExam($id)
     $exam = ExamCatalog::with('labEnvironment')->find($id);
 
     if (!$exam || !$exam->is_visible_to_students || $exam->status !== 'active') {
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Exam not available.'
-        ], 404);
-    }
+    return response()->json(['error' => 'Exam not found'], 404);
+        }
 
-    return response()->json([
-        'status' => 'success',
-        'exam' => $exam
-    ]);
-}
+        return response()->json([
+            'id' => $exam->exam_id,
+            'exam_code' => $exam->exam_code,
+            'exam_title' => $exam->exam_title,
+            'duration_minutes' => $exam->duration_minutes,
+            'description' => $exam->description,
+            'lab_environment' => $exam->labEnvironment ? [
+                'schema_name' => $exam->labEnvironment->schema_name,
+                'setup_script' => $exam->labEnvironment->setup_script,
+                'teardown_script' => $exam->labEnvironment->teardown_script,
+                'comments' => $exam->labEnvironment->comments,
+            ] : null,
+        ]);
+    }
 public function startExam(Request $request, $exam_id)
 {
     $student_id = $request->input('student_id');
@@ -189,5 +195,6 @@ public function submitAnswer(Request $request, $attempt_id)
         'message' => 'Exam completed successfully.'
     ]);
 }
+
 
 }
