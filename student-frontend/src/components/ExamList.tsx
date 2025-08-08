@@ -12,7 +12,6 @@ interface ExamListProps {
   loading?: boolean;
   error?: any;
   onViewInstructions?: (id: string) => void;
-  onBack?: () => void;
 }
 
 const ExamList: React.FC<ExamListProps> = ({
@@ -20,7 +19,6 @@ const ExamList: React.FC<ExamListProps> = ({
   loading,
   error,
   onViewInstructions,
-  onBack,
 }) => {
   if (loading) return <div>Loading exams...</div>;
   if (error) return <div className="text-red-500">Error loading exams.</div>;

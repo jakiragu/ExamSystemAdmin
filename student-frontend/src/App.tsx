@@ -6,6 +6,8 @@ import ExamLanding from './pages/ExamLanding';
 import StudentDashboard from './pages/StudentDashboard'; // ✅ Import
 import ExamInstructions from './pages/ExamInstructions.tsx';
 import NotFound from './pages/NotFound.tsx';
+import './index.css';
+
 
 const App: React.FC = () => {
   return (

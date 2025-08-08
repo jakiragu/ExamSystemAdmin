@@ -1,6 +1,6 @@
-// src/components/Sidebar.tsx
 import React from "react";
 import { FaHome, FaClipboardList, FaUser } from "react-icons/fa";
+import { motion } from "framer-motion";
 
 interface SidebarProps {
   setView?: (view: string) => void;
@@ -9,28 +9,37 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ setView, navigate }) => {
   return (
-    <aside className="bg-white shadow md:w-64 w-full md:h-screen p-6 space-y-6">
-      <nav className="space-y-4">
+    <motion.aside
+      initial={{ opacity: 0, x: -30 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.5 }}
+      className="bg-slate-900 text-white w-full md:w-64 md:h-screen p-6 space-y-8 border-r border-white/10 backdrop-blur-md shadow-glass"
+    >
+      <h2 className="text-2xl font-bold tracking-tight">📘 Menu</h2>
+
+      <nav className="flex flex-col space-y-4">
         <button
           onClick={() => setView?.("dashboard")}
-          className="flex items-center text-gray-700 hover:text-blue-600"
+          className="flex items-center gap-3 text-white hover:text-indigo-400 transition-colors"
         >
-          <FaHome className="mr-2" /> Dashboard
+          <FaHome className="w-5 h-5" /> Dashboard
         </button>
+
         <button
           onClick={() => navigate?.("/exams")}
-          className="flex items-center text-gray-700 hover:text-blue-600"
+          className="flex items-center gap-3 text-white hover:text-indigo-400 transition-colors"
         >
-          <FaClipboardList className="mr-2" /> Exams
+          <FaClipboardList className="w-5 h-5" /> Exams
         </button>
+
         <button
           onClick={() => navigate?.("/profile")}
-          className="flex items-center text-gray-700 hover:text-blue-600"
+          className="flex items-center gap-3 text-white hover:text-indigo-400 transition-colors"
         >
-          <FaUser className="mr-2" /> Profile
+          <FaUser className="w-5 h-5" /> Profile
         </button>
       </nav>
-    </aside>
+    </motion.aside>
   );
 };
 

@@ -120,7 +120,7 @@ use Illuminate\Support\Facades\Response;
 Route::get('/student/{any}', function () {
     $path = public_path('student/index.html');
     if (File::exists($path)) {
-        return File::get($path);
+       return response()->file($path);
     }
     return Response::make("React app not found", 404);
 })->where('any', '.*');
