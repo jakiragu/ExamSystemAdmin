@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { registerCandidate } from '../api/candidateApi';
 
-const StudentRegister: React.FC = () => {
+const StudentRegistration: React.FC = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -26,6 +27,12 @@ const StudentRegister: React.FC = () => {
     setLoading(true);
 
     try {
+      // Step 1: Set CSRF cookie
+      await axios.get('http://localhost:8000/sanctum/csrf-cookie', {
+        withCredentials: true,
+      });
+
+      // Step 2: Register student
       const response = await registerCandidate(formData);
 
       if (response.status === 'success') {
@@ -49,42 +56,30 @@ const StudentRegister: React.FC = () => {
 
   return (
     <div style={{ maxWidth: '600px', margin: 'auto', padding: '2rem' }}>
-      <h2>Student Registration</h2>
+      <h2 className="mb-4">🎓 Student Registration</h2>
       <form onSubmit={handleSubmit}>
         {['FullName', 'Email', 'Organization', 'Occupation', 'MobileNo'].map((field) => (
-          <div key={field} style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem' }}>
-              {field}:
+          <div key={field} className="mb-3">
+            <label className="form-label">
+              {field}
               <input
                 type="text"
                 name={field}
                 value={(formData as any)[field]}
                 onChange={handleChange}
                 required
-                style={{
-                  width: '100%',
-                  padding: '0.5rem',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                }}
+                className="form-control"
               />
             </label>
             {errors[field] && (
-              <div style={{ color: 'red', fontSize: '0.9rem' }}>{errors[field][0]}</div>
+              <div className="text-danger small">{errors[field][0]}</div>
             )}
           </div>
         ))}
         <button
           type="submit"
           disabled={loading}
-          style={{
-            padding: '0.75rem 1.5rem',
-            backgroundColor: '#007bff',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: loading ? 'not-allowed' : 'pointer',
-          }}
+          className="btn btn-primary w-100"
         >
           {loading ? 'Registering...' : 'Register'}
         </button>
@@ -93,4 +88,4 @@ const StudentRegister: React.FC = () => {
   );
 };
 
-export default StudentRegister;
+export default StudentRegistration;

@@ -25,3 +25,31 @@ Route::post('/student/attempts/{attempt_id}/answer', [StudentExamController::cla
 Route::post('/student/attempts/{attempt_id}/finish', [StudentExamController::class, 'finishExam']);
 Route::get('/exam-catalogs/{id}', [ExamCatalogController::class, 'show']);
 
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/student/profile', [CandidateController::class, 'profile']);
+});
+
+Route::post('/logout', [CandidateController::class, 'logout']);
+
+Route::post('/login', [CandidateController::class, 'login']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/student/exams', [StudentExamController::class, 'listAvailableExams']);
+    Route::get('/student/exams/{id}', [StudentExamController::class, 'getExamDetails']);
+    Route::post('/student/exams/{id}/start', [StudentExamController::class, 'startExam']);
+    Route::get('/student/exams/{id}/booking-status', [StudentExamController::class, 'checkBookingStatus']);
+    Route::post('/student/exams/book', [StudentExamController::class, 'bookExam']);
+    Route::get('/student/exams/{id}/payment-status', [StudentExamController::class, 'checkPaymentStatus']);
+    // ... other routes like getNextQuestion, submitAnswer, finishExam
+});
+
+
+use Illuminate\Support\Facades\DB;
+
+Route::get('/student/exams', function () {
+    return response()->json([
+        'exams' => DB::table('exam_catalogs')->get()
+    ]);
+});
+

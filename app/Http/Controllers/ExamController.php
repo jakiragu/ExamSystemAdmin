@@ -140,4 +140,11 @@ class ExamController extends Controller
         return redirect()->route('adminDashboard')
                          ->with('success', "Exam $status-ed successfully.");
     }
+    public function viewStudentInfo()
+{
+    // Example logic
+    $students = Candidates::all(); // or however you're fetching data
+    return view('studentInfo', compact('students'));
+}
+
 }

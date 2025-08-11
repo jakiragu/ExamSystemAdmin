@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class Candidates extends Model
+class Candidates extends Authenticatable
 {
+    use HasApiTokens;
     // Use 'id' as primary key for consistency
     protected $primaryKey = 'id';
     public $incrementing = true;

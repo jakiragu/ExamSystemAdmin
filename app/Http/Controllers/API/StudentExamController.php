@@ -6,7 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\ExamCatalog;
 use App\Models\LabEnvironment;
+use App\Models\Payment;
+use App\Models\ExamBooking;
 use App\Models\StudentExamAttempt;
+use Illuminate\Support\Facades\Auth;
 
 
 class StudentExamController extends Controller
@@ -16,16 +19,32 @@ class StudentExamController extends Controller
      * Used in: Page 1 (Dropdown + instructions)
      */
     public function listAvailableExams()
-    {
-        $exams = ExamCatalog::select('exam_id', 'exam_code', 'exam_title')->get();
+{
+    $examCatalogs = ExamCatalog::with(['objectives', 'instructions'])
+        ->select('id', 'exam_code', 'exam_title')
+        ->get();
 
-        return response()->json([
-            'status' => 'success',
-            'instructions' => 'Welcome to the examination portal. Please select your exam from the dropdown and click "Proceed". Read all rules carefully before starting.',
-            'available_exams' => $exams
-        ]);
-    }
+    $exams = $examCatalogs->map(function ($catalog) {
+        return [
+            'id' => $catalog->id,
+            'exam_code' => $catalog->exam_code,
+            'exam_title' => $catalog->exam_title,
+            'exam_objectives' => $catalog->objectives->map(function ($obj) {
+                return [
+                    'title' => $obj->objective_title,
+                    'description' => $obj->description,
+                ];
+            }),
+            'instructions' => $catalog->instructions->pluck('content'),
+        ];
+    });
 
+    return response()->json([
+        'status' => 'success',
+        'instructions' => 'Welcome to the examination portal. Please select your exam from the dropdown and click "Proceed". Read all rules carefully before starting.',
+        'available_exams' => $exams
+    ]);
+}
     /**
      * Show specific exam details including time and lab environment.
      * Used in: Page 2 (after exam is selected)
@@ -195,6 +214,55 @@ public function submitAnswer(Request $request, $attempt_id)
         'message' => 'Exam completed successfully.'
     ]);
 }
+
+
+public function checkBookingStatus(int $exam_id)
+{
+    $student_id = Auth::id();
+
+    $booked = ExamBooking::where('exam_id', $exam_id)
+        ->where('user_id', $student_id)
+        ->exists();
+
+    return response()->json([
+        'status' => 'success',
+        'booked' => $booked,
+    ]);
+}
+public function bookExam(Request $request)
+{
+    $request->validate([
+        'exam_id' => 'required|exists:exam_catalogs,id',
+    ]);
+
+  
+    $student_id = Auth::id();
+
+    ExamBooking::firstOrCreate([
+        'user_id' => $student_id,
+        'exam_id' => $request->exam_id,
+    ]);
+
+    return response()->json(['message' => 'Exam booked successfully']);
+}
+
+public function checkPaymentStatus($exam_id)
+{
+    // Get current user ID using the Auth facade
+    $student_id = Auth::id();
+
+    if (!$student_id) {
+        return response()->json(['error' => 'Unauthenticated'], 401);
+    }
+
+    $paid = Payment::where('exam_id', $exam_id)
+                   ->where('user_id', $student_id)
+                   ->where('status', 'confirmed')
+                   ->exists();
+
+    return response()->json(['paid' => $paid]);
+}
+
 
 
 }

@@ -1,58 +1,69 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-
-interface Exam {
-  exam_id: number;
-  exam_code: string;
-  exam_title: string;
-  duration_minutes: number;
-}
+import { Spinner, Card, Button, Container, Row, Col } from 'react-bootstrap';
+import { useExam, Exam } from '../context/ExamContext';
 
 const ExamLanding: React.FC = () => {
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { setSelectedExam } = useExam();
 
   useEffect(() => {
-    axios.get('http://localhost:8000/api/student/exams') // Adjust backend URL/port
+    axios.get('http://localhost:8000/api/student/exams')
       .then(response => {
-        setExams(response.data.exams); // Make sure API returns this key
+        const fetchedExams = Array.isArray(response.data.exams) ? response.data.exams : [];
+        setExams(fetchedExams);
         setLoading(false);
       })
       .catch(error => {
         console.error('Failed to fetch exams:', error);
+        setExams([]);
         setLoading(false);
       });
   }, []);
 
   const handleSelectExam = (exam: Exam) => {
-    localStorage.setItem('selectedExam', JSON.stringify(exam));
-    navigate('/exam-instructions/${selectedExam.exam_id}');
+    setSelectedExam(exam);
+    navigate(`/exam-instructions/${exam.id}`);
   };
 
-  if (loading) return <div>Loading exams...</div>;
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <Spinner animation="border" variant="primary" />
+        <span className="ms-3">Loading exams...</span>
+      </div>
+    );
+  }
 
   return (
-    <div className="exam-landing">
-      <h2>Select an Exam</h2>
+    <Container className="mt-5">
+      <h2 className="mb-4 text-center">📘 Select an Exam</h2>
       {exams.length === 0 ? (
-        <p>No exams available at the moment.</p>
+        <p className="text-center">No exams available at the moment.</p>
       ) : (
-        <ul>
+        <Row>
           {exams.map((exam) => (
-            <li key={exam.exam_id} style={{ marginBottom: '1rem' }}>
-              <div>
-                <strong>{exam.exam_title}</strong> ({exam.exam_code}) — {exam.duration_minutes} minutes
-              </div>
-              <button onClick={() => handleSelectExam(exam)}>
-                Select This Exam
-              </button>
-            </li>
+            <Col md={6} lg={4} key={exam.id} className="mb-4">
+              <Card className="shadow-sm h-100">
+                <Card.Body>
+                  <Card.Title>{exam.exam_title}</Card.Title>
+                  <Card.Subtitle className="mb-2 text-muted">{exam.exam_code}</Card.Subtitle>
+                  <Card.Text>
+                    Duration: {exam.duration_minutes} minutes
+                  </Card.Text>
+                  <Button variant="primary" onClick={() => handleSelectExam(exam)}>
+                    Select This Exam
+                  </Button>
+                </Card.Body>
+              </Card>
+            </Col>
           ))}
-        </ul>
+        </Row>
       )}
-    </div>
+    </Container>
   );
 };
 
