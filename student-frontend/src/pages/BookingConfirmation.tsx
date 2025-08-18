@@ -30,7 +30,7 @@ const BookingConfirmation: React.FC = () => {
     return (
       <div className="text-center mt-5">
         <h4>No booking data found.</h4>
-        <Button onClick={() => navigate('/student/dashboard')}>Go to Dashboard</Button>
+        <Button onClick={() => navigate('/dashboard')}>Go to Dashboard</Button>
       </div>
     );
   }
@@ -46,10 +46,10 @@ const BookingConfirmation: React.FC = () => {
           <p><strong>Payment:</strong> {booking.payment_status || 'pending'}</p>
 
           <div className="mt-4">
-            <Button variant="primary" onClick={() => navigate('/student/bookings')}>
+            <Button variant="primary" onClick={() => navigate('/bookings')}>
               View My Bookings
             </Button>{' '}
-            <Button variant="outline-secondary" onClick={() => navigate('/student/dashboard')}>
+            <Button variant="outline-secondary" onClick={() => navigate('/dashboard')}>
               Back to Dashboard
             </Button>
           </div>
