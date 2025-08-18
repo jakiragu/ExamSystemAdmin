@@ -39,7 +39,11 @@ public function labEnvironment()
 }
 public function objectives()
 {
-    return $this->hasMany(ExamObjective::class, 'exam_id');
+    return $this->hasMany(ExamObjective::class, 'exam_catalog_id');
+}
+public function bookings()
+{
+    return $this->hasMany(CandidateExamBooking::class);
 }
 
 

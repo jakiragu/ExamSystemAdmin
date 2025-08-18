@@ -11,7 +11,7 @@ const ExamLanding: React.FC = () => {
   const { setSelectedExam } = useExam();
 
   useEffect(() => {
-    axios.get('http://localhost:8000/api/student/exams')
+    axios.get('http://127.0.0.1:8000/api/student/exams')
       .then(response => {
         const fetchedExams = Array.isArray(response.data.exams) ? response.data.exams : [];
         setExams(fetchedExams);

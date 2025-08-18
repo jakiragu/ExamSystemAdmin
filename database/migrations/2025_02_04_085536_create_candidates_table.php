@@ -10,12 +10,14 @@ return new class extends Migration
     {
         Schema::create('candidates', function (Blueprint $table) {
             $table->id(); // auto-increment primary key
-            $table->string('CertificationID')->unique(); // optional for now
+            $table->string('CertificationID')->nullable()->unique(); // optional for now
             $table->string('FullName');
-            $table->string('Email');
+            $table->string('Email')->unique;
             $table->string('Organization');
             $table->string('Occupation');
             $table->string('MobileNo');
+            $table->string('password');
+            $table->rememberToken();
             $table->timestamps();
         });
     }

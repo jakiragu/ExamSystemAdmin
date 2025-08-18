@@ -8,11 +8,19 @@ interface Exam {
 }
 
 interface Props {
-  exam: Exam | null;
+  exam: {
+    exam_title: string;
+    exam_code: string;
+    duration_minutes: number;
+  };
+  examObjectives: Objective[];
   isBooked: boolean;
-  onSchedule: () => void;
-  onNext: () => void;
-}
+  onSchedule: () => void | Promise<void>;
+  onNext: () => void | Promise<void>;
+}{
+    
+  }[];
+ interface Objective {}
 
 const BasicExamInfo: React.FC<Props> = ({ exam, isBooked, onSchedule, onNext }) => {
   return (

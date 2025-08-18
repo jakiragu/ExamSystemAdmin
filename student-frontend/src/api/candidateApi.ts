@@ -1,10 +1,13 @@
-import axios from 'axios';
+import axios from './axiosInstance';
+import Cookies from 'js-cookie';
 
-const API_BASE = 'http://localhost:8000';
+
+
+const API_BASE = 'http://127.0.0.1:8000';
 
 // 🔐 Ensure CSRF token is set before any POST
 const ensureCsrf = async () => {
-  await axios.get('http://localhost:8000/sanctum/csrf-cookie', {
+  await axios.get('http://127.0.0.1:8000/sanctum/csrf-cookie', {
     withCredentials: true,
   });
 };
@@ -16,10 +19,12 @@ export const registerCandidate = async (data: {
   Organization: string;
   Occupation: string;
   MobileNo: string;
+  password: string;
+  password_confirmation: string;
 }) => {
   try {
     // 🔐 Step 1: Get CSRF cookie
-    await axios.get('http://localhost:8000/sanctum/csrf-cookie', {
+    await axios.get('http://127.0.0.1:8000/sanctum/csrf-cookie', {
       withCredentials: true,
     });
 
@@ -29,7 +34,7 @@ export const registerCandidate = async (data: {
       .find(row => row.startsWith('XSRF-TOKEN='))
       ?.split('=')[1];
 
-    const response = await axios.post('http://localhost:8000/api/student/register', data, {
+    const response = await axios.post('http://127.0.0.1:8000/api/student/register', data, {
       headers: {
         'Content-Type': 'application/json',
         'X-XSRF-TOKEN': decodeURIComponent(xsrfToken || ''),
@@ -37,7 +42,7 @@ export const registerCandidate = async (data: {
       withCredentials: true,
     });
 
-    return response.data;
+    return response;
   } catch (error: any) {
     console.error('Registration failed:', error);
     throw error;
@@ -60,12 +65,21 @@ export const fetchCandidateProfile = async () => {
 
 // 🚪 Logout candidate
 export const logoutCandidate = async () => {
-  try {
-    await axios.post(`${API_BASE}/api/logout`, {}, {
+  await axios.get('http://127.0.0.1:8000/sanctum/csrf-cookie', {
+    withCredentials: true,
+  });
+
+  const xsrfToken = Cookies.get('XSRF-TOKEN');
+
+  return await axios.post(
+    'http://127.0.0.1:8000/api/logout',
+    {},
+    {
       withCredentials: true,
-    });
-  } catch (error: any) {
-    console.error('Logout failed:', error);
-    throw error;
-  }
+      headers: {
+        'X-XSRF-TOKEN': xsrfToken || '',
+      },
+    }
+  );
 };
+

@@ -21,6 +21,7 @@ class AdminManagementController extends Controller
     }
 
     public function store(Request $request)
+    
     {
         $request->validate([
             'AdminName' => 'required|unique:admins',

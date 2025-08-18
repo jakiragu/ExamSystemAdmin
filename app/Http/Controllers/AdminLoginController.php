@@ -16,6 +16,7 @@ class AdminLoginController extends Controller
 
     public function login(Request $request)
     {
+        
         $request->validate([
             'email' => 'required|email',
             'password' => 'required',
@@ -64,4 +65,16 @@ class AdminLoginController extends Controller
 
         return redirect()->route('Admin')->with('success', 'Admin created successfully!');
     }
+   // public function submit(Request $request)
+//{
+   // $credentials = $request->only('email', 'password');
+
+   // if (Auth::guard('admin')->attempt($credentials)) {
+    //    return redirect()->route('adminDashboard')->with('success', 'Logged in!');
+//   }
+
+   // return back()->withErrors(['login' => 'Invalid credentials'])->withInput();
+//}
+
+
 }

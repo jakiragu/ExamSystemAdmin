@@ -1,16 +1,21 @@
 import React, { createContext, useContext, useState } from 'react';
 
+export interface Objective {
+  objective_title: string;
+  description?: string;
+  subject_area?: {
+    name: string;
+  };
+}
+
 export interface Exam {
   id: number;
   exam_code: string;
   exam_title: string;
   duration_minutes: number;
-  exam_objectives?: {
-    title: string;
-    description: string;
-  }[];
-    
-    // Add other fields as necessary
+  is_booked?: boolean;
+  objectives?: Objective[]; // ✅ Now correctly typed
+  // Add other fields as necessary
 }
 
 interface ExamContextType {

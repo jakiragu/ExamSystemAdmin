@@ -4,6 +4,8 @@ import axios from 'axios';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import '../index.css';
+import Cookies from 'js-cookie';
+import { logoutCandidate } from '../api/candidateApi';
 
 interface Student {
   id: number;
@@ -16,20 +18,22 @@ export default function StudentDashboard() {
   const [student, setStudent] = useState<Student | null>(null);
   const navigate = useNavigate();
 
-  const handleLogout = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    try {
-      await axios.post('http://localhost:8000/api/logout', {}, { withCredentials: true });
-      navigate('/register'); // redirect to register/login page after logout
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
-  };
+const handleLogout = async (e: React.MouseEvent) => {
+  e.preventDefault();
+  try {
+    await logoutCandidate();
+    navigate('/login');
+  } catch (error) {
+    console.error('Logout failed:', error);
+    alert('Logout failed. Please try again.');
+  }
+};
 
   useEffect(() => {
-    axios.get('http://localhost:8000/api/student/profile', { withCredentials: true })
+    console.log('Dashboard component mounted');
+    axios.get('http://127.0.0.1:8000/api/student/profile', { withCredentials: true })
       .then(res => {
-        setStudent(res.data);
+        setStudent(res.data.candidate);
       })
       .catch(err => {
         console.error('Error fetching student profile:', err);
@@ -68,9 +72,9 @@ export default function StudentDashboard() {
             <Link to="/past-exams"><i className="bi bi-journal-check me-2"></i> Past Exams</Link>
             <Link to="/performance"><i className="bi bi-bar-chart-fill me-2"></i> Performance</Link>
             <Link to="/guidelines"><i className="bi bi-book me-2"></i> Exam Guidelines</Link>
-            <Link to="#" onClick={handleLogout}>
-              <i className="bi bi-box-arrow-right me-2"></i> Logout
-            </Link>
+            <button className="btn btn-outline-danger w-100 text-start" onClick={handleLogout}>
+  <i className="bi bi-box-arrow-right me-2"></i> Logout
+</button>
           </div>
 
           {/* Main Content */}
@@ -135,7 +139,7 @@ export default function StudentDashboard() {
                 <div className="card glass fade-in-up h-100">
                   <div className="card-body">
                     <h5 className="card-title">
-                      <i className="bi bi-book me-2"></i> Exam Guidelines
+                      <i className="bi bi-book me-2"></i> System Compatability Check
                     </h5>
                     <p className="card-text">Read important exam rules.</p>
                     <Link to="/guidelines" className="btn btn-primary">Read Now</Link>

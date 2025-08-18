@@ -28,15 +28,11 @@
   <div class="container my-5 p-5 bg-white shadow rounded-4" style="max-width: 600px;">
     <h2 class="text-center page-title mb-4">Admin Login</h2>
 
-    @if($errors->any())
-      <div class="alert alert-danger">
-        <ul class="mb-0">
-          @foreach($errors->all() as $error)
-            <li>{{ $error }}</li>
-          @endforeach
-        </ul>
-      </div>
-    @endif
+    @if($errors->has('login'))
+  <div class="alert alert-danger">
+    {{ $errors->first('login') }}
+  </div>
+@endif
 
     <form action="{{ route('Admin.submit') }}" method="post">
       @csrf

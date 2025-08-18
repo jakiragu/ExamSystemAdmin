@@ -2,118 +2,85 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Candidates;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use App\Http\Controllers\Controller;
 
 class CandidateController extends Controller
 {
     /**
-     * Register a new candidate and log them in via session.
+     * Register a new candidate
      */
     public function register(Request $request)
     {
-        // ✅ Validate input
-        $validator = Validator::make($request->all(), [
+        $request->validate([
             'FullName' => 'required|string|max:255',
             'Email' => 'required|email|unique:candidates,Email',
-            'Organization' => 'required|string|max:255',
-            'Occupation' => 'required|string|max:255',
-            'MobileNo' => 'required|string|max:20',
+            'Organization' => 'nullable|string|max:255',
+            'Occupation' => 'nullable|string|max:255',
+            'MobileNo' => 'nullable|string|max:20',
+            'password' => 'required|string|min:8'
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'validation_failed',
-                'errors' => $validator->errors()
-            ], 422);
-        }
+        // Generate unique CertificationID
+        do {
+            $certificationID = rand(10000, 99999);
+        } while (Candidates::where('CertificationID', $certificationID)->exists());
 
-        // ✅ Create candidate
-        $certificationID = rand(10000, 99999);
+        $candidate = Candidates::create([
+            'CertificationID' => $certificationID,
+            'FullName' => $request->FullName,
+            'Email' => $request->Email,
+            'Organization' => $request->Organization,
+            'Occupation' => $request->Occupation,
+            'MobileNo' => $request->MobileNo,
+            'password' => Hash::make($request->password),
+            'ResultsReleased' => 0
+        ]);
+        Auth::login($candidate); 
+        $request->session()->regenerate(); 
 
-        try {
-            $candidate = Candidates::create([
-                'CertificationID' => $certificationID,
-                'FullName' => $request->FullName,
-                'Email' => $request->Email,
-                'Organization' => $request->Organization,
-                'Occupation' => $request->Occupation,
-                'MobileNo' => $request->MobileNo,
-                'ResultsReleased' => 0
-            ]);
-
-            // ✅ Log in using session (web guard)
-            Auth::guard('web')->login($candidate);
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Student registered successfully!',
-                'candidate' => $candidate
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Registration failed',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'message' => 'Registration successful',
+            'candidate' => $candidate
+        ], 201);
     }
 
     /**
-     * Log in a candidate using session-based auth.
+     * Login candidate
      */
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'Email' => 'required|email',
             'password' => 'required',
         ]);
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
+        // Match DB column name exactly
+        if (!Auth::attempt([
+            'Email' => $request->Email,
+            'password' => $request->password
+        ])) {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
         $request->session()->regenerate();
 
-        return response()->json(['message' => 'Login successful']);
-    }
-
-    /**
-     * Return the authenticated candidate's profile.
-     */
-    public function profile(Request $request)
-    {
-        $user = $request->user(); // Sanctum will resolve this via session
-
-        if (!$user) {
-            return response()->json(['error' => 'Unauthenticated'], 401);
-        }
-
         return response()->json([
-            'id' => $user->id,
-            'FullName' => $user->FullName,
-            'Email' => $user->Email,
-            'Organization' => $user->Organization,
-            'Occupation' => $user->Occupation,
-            'MobileNo' => $user->MobileNo,
+            'message' => 'Login successful',
+            'candidate' => Auth::user()
         ]);
     }
+    
 
     /**
-     * Log out the candidate and invalidate session.
+     * Logout candidate
      */
     public function logout(Request $request)
     {
         try {
-            // ✅ Token-based logout (if used)
-            if ($request->user() && method_exists($request->user(), 'currentAccessToken')) {
-                // $request->user()->currentAccessToken()->delete();
-            }
-
-            // ✅ Session-based logout
             if (Auth::check()) {
                 Auth::logout();
                 $request->session()->invalidate();
@@ -129,5 +96,15 @@ class CandidateController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Get logged-in candidate profile
+     */
+    public function profile()
+    {
+        return response()->json([
+            'candidate' => Auth::user()
+        ]);
     }
 }

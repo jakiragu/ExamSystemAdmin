@@ -15,6 +15,10 @@ import JoinExam from './pages/JoinExam.tsx';
 import PastExams from './pages/PastExams.tsx';
 import PerformanceReport from './pages/PerformanceReport.tsx';
 import ExamGuidelines from './pages/ExamGuidelines.tsx';
+import BookingConfirmation from './pages/BookingConfirmation';
+
+
+
 
 // Optional: Uncomment when ready
  import ExamPage from './pages/ExamPage/exampage.tsx';
@@ -43,6 +47,8 @@ const App: React.FC = () => {
       <Route path="/performance" element={<PerformanceReport />} />
       <Route path="/guidelines" element={<ExamGuidelines />} />
       <Route path="/profile" element={<StudentProfile />} />
+      <Route path="/logout" element={<StudentDashboard />} />
+      <Route path="/booking-confirmation" element={<BookingConfirmation />} />
 
       {/* 🚫 Fallback */}
       <Route path="*" element={<NotFound />} />
