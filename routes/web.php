@@ -73,11 +73,16 @@ Route::middleware([CheckAdmin::class])->group(function () {
     Route::get('/ViewSubmissions', [ExamController::class, 'showSubmittedStudents'])->name('ViewSubmissions');
     Route::get('/ViewAnswers/{id}', [ExamController::class, 'viewAnswers'])->name('ViewAnswers');
 
-    // Questions
-    Route::get('/ViewQuestions', [GradingController::class, 'viewQuestions'])->name('ViewQuestions');
-    Route::delete('/questions/{id}', [GradingController::class, 'deleteQuestion'])->name('questions.delete');
-    Route::view('/makeQuestions', 'MakeQuestions');
-    Route::post('/makeQuestions', [GradingController::class, 'makeQuestions'])->name('makeQuestions');
+
+// Exam questions resource routes for admin
+Route::prefix('admin')->name('admin.')->middleware([CheckAdmin::class])->group(function () {
+    Route::resource('exam-questions', ExamQuestionController::class);
+});
+   // Route::get('/ViewQuestions', [GradingController::class, 'viewQuestions'])->name('ViewQuestions');
+    //Route::delete('/questions/{id}', [GradingController::class, 'deleteQuestion'])->name('questions.delete');
+    //Route::view('/makeQuestions', 'MakeQuestions');
+   // Route::post('/makeQuestions', [GradingController::class, 'makeQuestions'])->name('makeQuestions');
+
 
     // Exam Grading
     Route::get('/GradeExam', [GradingController::class, 'markAnswers'])->name('GradeExam');

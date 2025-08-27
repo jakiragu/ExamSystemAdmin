@@ -17,6 +17,7 @@ class CandidateExamBooking extends Model
         'payment_status',
         'reschedule_count',
     ];
+    protected $with = ['candidate', 'examCatalog'];
 
     // Relationships
     public function candidate()

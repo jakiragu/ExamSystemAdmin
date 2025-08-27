@@ -5,10 +5,11 @@ import {
 } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import { Exam } from '../context/ExamContext';
-import axiosInstance from '../api/axiosInstance'; // ✅ Correct instance
+import axiosInstance from '../api/axiosInstance';
 
 interface BookingData {
-  scheduled_date: string;
+  date: string;
+  time: string;
 }
 
 const BookExamSlot: React.FC = () => {
@@ -28,7 +29,7 @@ const BookExamSlot: React.FC = () => {
   useEffect(() => {
     const fetchExams = async () => {
       try {
-        const res = await axiosInstance.get('/student/exams'); // ✅ Uses instance
+        const res = await axiosInstance.get('/student/exams');
         setExams(Array.isArray(res.data.exams) ? res.data.exams : []);
       } catch (err) {
         console.error('Failed to fetch exams:', err);
@@ -41,37 +42,37 @@ const BookExamSlot: React.FC = () => {
     fetchExams();
   }, []);
 
- interface BookingData {
-  date: string;
-  time: string;
-}
+  const onSubmit = async (data: BookingData) => {
+    if (!selectedExam) return;
 
-const onSubmit = async (data: BookingData) => {
-  if (!selectedExam) return;
+    setIsSubmitting(true);
+    setErrorMessage(null);
 
-  setIsSubmitting(true);
-  setErrorMessage(null);
+    try {
+      await axiosInstance.get("http://127.0.0.1:8000/sanctum/csrf-cookie", {
+        withCredentials: true,
+      });
 
-  try {
-    await axiosInstance.get("http://127.0.0.1:8000/sanctum/csrf-cookie", {
-      withCredentials: true,
-    });
+      const scheduledDateTime = `${data.date} ${data.time}:00`;
 
-    const scheduledDateTime = `${data.date} ${data.time}:00`; // "YYYY-MM-DD HH:MM:SS"
+      const response = await axiosInstance.post("/bookings", {
+        exam_catalog_id: selectedExam.id,
+        scheduled_date: scheduledDateTime,
+      });
 
-    await axiosInstance.post("/bookings", {
-      exam_catalog_id: selectedExam.id,
-      scheduled_date: scheduledDateTime,
-    });
+      const booking = response.data.booking;
+      console.log("Booking response:", booking);
 
-    navigate("/booking-confirmation");
-  } catch (error) {
-    console.error("Booking failed:", error);
-    setErrorMessage("Booking failed. Please check your session and try again.");
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+      navigate("/booking-confirmation", {
+        state: { booking },
+      });
+    } catch (error) {
+      console.error("Booking failed:", error);
+      setErrorMessage("Booking failed. Please check your session and try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <Container className="mt-5">
@@ -106,7 +107,7 @@ const onSubmit = async (data: BookingData) => {
               <Form.Label>Select Date</Form.Label>
               <Form.Control
                 type="date"
-                {...register('date', { required: 'Date is required' })}
+                {...register("date", { required: "Date is required" })}
                 isInvalid={!!errors.date}
               />
               <Form.Control.Feedback type="invalid">
@@ -114,40 +115,22 @@ const onSubmit = async (data: BookingData) => {
               </Form.Control.Feedback>
             </Form.Group>
 
+            <Form.Group className="mb-3">
+              <Form.Label>Select Time</Form.Label>
+              <Form.Control
+                type="time"
+                {...register("time", { required: "Time is required" })}
+                isInvalid={!!errors.time}
+              />
+              <Form.Control.Feedback type="invalid">
+                {errors.time?.message}
+              </Form.Control.Feedback>
+            </Form.Group>
+
             <Button variant="success" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Booking...' : '✅ Confirm Booking'}
+              {isSubmitting ? "Booking..." : "✅ Confirm Booking"}
             </Button>
           </Form>
-          <Form onSubmit={handleSubmit(onSubmit)}>
-  <Form.Group className="mb-3">
-    <Form.Label>Select Date</Form.Label>
-    <Form.Control
-      type="date"
-      {...register("date", { required: "Date is required" })}
-      isInvalid={!!errors.date}
-    />
-    <Form.Control.Feedback type="invalid">
-      {errors.date?.message}
-    </Form.Control.Feedback>
-  </Form.Group>
-
-  <Form.Group className="mb-3">
-    <Form.Label>Select Time</Form.Label>
-    <Form.Control
-      type="time"
-      {...register("time", { required: "Time is required" })}
-      isInvalid={!!errors.time}
-    />
-    <Form.Control.Feedback type="invalid">
-      {errors.time?.message}
-    </Form.Control.Feedback>
-  </Form.Group>
-
-  <Button variant="success" type="submit" disabled={isSubmitting}>
-    {isSubmitting ? "Booking..." : "✅ Confirm Booking"}
-  </Button>
-</Form>
-
         </>
       ) : exams.length === 0 ? (
         <p className="text-center">No exams available at the moment.</p>

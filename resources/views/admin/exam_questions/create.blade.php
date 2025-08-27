@@ -124,7 +124,8 @@
 
         {{-- CTA --}}
         <button type="submit" class="btn btn-success">✅ Save Question</button>
-        <a href="{{ route('admin.exam-questions.import') }}" class="btn btn-outline-primary ms-2">📥 Bulk Import CSV</a>
+         <a href="{{ route('admin.exam-questions.index') }}" class="btn btn-secondary">Cancel</a>
+         <a href="{{ route('admin.exam-questions.import') }}" class="btn btn-outline-primary ms-2">📥 Bulk Import CSV</a>
     </form>
 </div>
 

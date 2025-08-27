@@ -22,11 +22,13 @@ class CandidateExamBookingController extends Controller
             'scheduled_date' => 'required|date|after_or_equal:today',
         ]);
 
-         $booking = CandidateExamBooking::create([
+        $booking = CandidateExamBooking::create([
         'candidate_id' => $request->user()->id, // auto from session
         'exam_catalog_id' => $request->exam_catalog_id,
         'scheduled_at' => $request->scheduled_date,
     ]);
+    $booking->load(['candidate', 'examCatalog']);
+
       return response()->json([
         'message' => 'Booking successful',
         'booking' => $booking,
