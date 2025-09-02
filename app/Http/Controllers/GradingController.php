@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Answers;
-use App\Models\Candidates;
+use App\Models\Candidate;
 use App\Models\Questions;
 use App\Models\CorrectAnswers;
 use App\Models\Choices;
@@ -126,7 +126,7 @@ class GradingController extends Controller
 
     public function releaseResults()
     {
-        $candidates = Candidates::all();
+        $candidates = Candidate::all();
 
         foreach ($candidates as $candidate) {
             Mail::raw("Dear {$candidate->FullName}, your results have been released. Please check your portal.", function ($message) use ($candidate) {
@@ -199,13 +199,13 @@ class GradingController extends Controller
 
     public function manageResults()
     {
-        $candidates = Candidates::all();
+        $candidates = Candidate::all();
         return view('ManageResults', compact('candidates'));
     }
 
     public function viewCandidateAnswers($id)
     {
-        $candidate = Candidates::findOrFail($id);
+        $candidate = Candidate::findOrFail($id);
         $answers = Answers::where('CertificationID', $candidate->CertificationID)->get();
         $questions = Questions::whereIn('QuestionID', $answers->pluck('QuestionID'))->get()->keyBy('QuestionID');
 

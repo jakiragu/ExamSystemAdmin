@@ -24,6 +24,7 @@ import BookingConfirmation from './pages/BookingConfirmation';
  import ExamPage from './pages/ExamPage/exampage.tsx';
 
 import './index.css';
+import MyBookings from './pages/mybookings.tsx';
 
 const App: React.FC = () => {
   return (
@@ -49,6 +50,10 @@ const App: React.FC = () => {
       <Route path="/profile" element={<StudentProfile />} />
       <Route path="/logout" element={<StudentDashboard />} />
       <Route path="/booking-confirmation" element={<BookingConfirmation />} />
+      <Route path="/bookings" element={<MyBookings />} />
+      <Route path="/exam/:id" element={<ExamPage />} />
+
+
 
       {/* 🚫 Fallback */}
       <Route path="*" element={<NotFound />} />

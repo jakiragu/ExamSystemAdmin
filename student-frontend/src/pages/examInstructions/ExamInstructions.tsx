@@ -158,15 +158,15 @@ const ExamInstructions: React.FC = () => {
         <div className="alert alert-info">No lab environment required for this exam.</div>
       )}
 
-      {/* Start Exam Button */}
-      <div className="text-center mt-5">
+    {/* Start Exam Button */}
+     {/* <div className="text-center mt-5">
         <button
           onClick={handleStartExam}
           className="btn btn-primary btn-lg d-flex align-items-center gap-2 justify-content-center"
         >
           🚀 Start Exam
         </button>
-      </div>
+      </div> */}
     </div>
   );
 };

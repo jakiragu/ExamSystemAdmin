@@ -8,8 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class LabEnvironment extends Model
 {
     use HasFactory;
+    protected $table = 'lab_environments';
 
-    protected $primaryKey = 'lab_env_id';
+    protected $primaryKey = 'id';
 
     protected $fillable = [
         'schema_name',
@@ -18,8 +19,9 @@ class LabEnvironment extends Model
         'comments',
     ];
 
-    public function examQuestions()
-    {
-        return $this->hasMany(ExamQuestion::class, 'lab_env_id');
-    }
+    
+    public function questions()
+{
+    return $this->hasMany(Questions::class, 'lab_env_id', 'id');
+}
 }

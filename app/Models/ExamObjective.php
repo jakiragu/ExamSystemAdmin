@@ -30,4 +30,8 @@ class ExamObjective extends Model
     {
         return $this->belongsTo(ExamCatalog::class, 'exam_catalog_id', 'id');
     }
+    public function questions()
+{
+    return $this->hasMany(Questions::class, 'exam_objective_id');
+}
 }

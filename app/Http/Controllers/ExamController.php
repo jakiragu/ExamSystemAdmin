@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Candidates;
+use App\Models\Candidate;
 use App\Models\Questions;
 use App\Models\Answers;
 use App\Models\Choices;
@@ -15,19 +15,19 @@ class ExamController extends Controller
 
     public function showAllStudents()
     {
-        $candidates = Candidates::all();
+        $candidates = Candidate::all();
         return view('studentInfo', compact('candidates'));
     }
 
     public function showSubmittedStudents()
     {
-        $candidates = Candidates::has('answers')->withCount('answers')->get();
+        $candidates = Candidate::has('answers')->withCount('answers')->get();
         return view('ViewSubmissions', compact('candidates'));
     }
 
     public function deleteStudent($id)
     {
-        $student = Candidates::where('CertificationID', $id)->firstOrFail();
+        $student = Candidate::where('CertificationID', $id)->firstOrFail();
         $student->delete();
 
         return back()->with('success', 'Student deleted successfully!');
@@ -44,7 +44,7 @@ class ExamController extends Controller
             'MobileNo' => 'required'
         ]);
 
-        Candidates::create($validated);
+        Candidate::create($validated);
     }
 
     // -------------------- STUDENT EXAM FLOW --------------------
@@ -86,7 +86,7 @@ class ExamController extends Controller
             return [$answer->QuestionID => Questions::where('QuestionID', $answer->QuestionID)->first()];
         });
 
-        $student = Candidates::where('CertificationID', $certificationID)->first();
+        $student = Candidate::where('CertificationID', $certificationID)->first();
 
         return view('ViewAnswers', compact('answers', 'questions', 'student'));
     }
@@ -143,7 +143,7 @@ class ExamController extends Controller
     public function viewStudentInfo()
 {
     // Example logic
-    $students = Candidates::all(); // or however you're fetching data
+    $students = Candidate::all(); // or however you're fetching data
     return view('studentInfo', compact('students'));
 }
 

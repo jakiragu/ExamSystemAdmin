@@ -7,13 +7,13 @@ use App\Http\Controllers\API\CandidateController;
 use App\Http\Controllers\API\StudentExamController;
 use App\Http\Controllers\API\ExamCatalogController;
 use App\Http\Controllers\API\CandidateExamBookingController;
+use App\Http\Controllers\API\ExamController;
 use Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful;
 
 //
 // 🔓 Public Routes (No Auth Required)
 //
 Route::get('/exams', fn () => ExamCatalog::all());
-
 Route::get('/exam-catalogs/{id}', [ExamCatalogController::class, 'show']);
 Route::get('/exam-catalogs/{id}/full', [ExamCatalogController::class, 'showFull']);
 
@@ -52,24 +52,26 @@ Route::middleware([
     'web',
     'auth:sanctum',
 ])->group(function () {
+    // Booking & Payment
     Route::get('/student/exams/{id}/booking-status', [StudentExamController::class, 'checkBookingStatus']);
     Route::post('/student/exams/book', [StudentExamController::class, 'bookExam']);
     Route::get('/student/exams/{id}/payment-status', [StudentExamController::class, 'checkPaymentStatus']);
-});
-//
-// 📅 Exam Bookings (CRUD)
-//
-Route::middleware([
-    EnsureFrontendRequestsAreStateful::class,
-    'web',
-    'auth:sanctum',
-])->group(function () {
+
+    // Exam Bookings CRUD
     Route::prefix('bookings')->group(function () {
         Route::get('/', [CandidateExamBookingController::class, 'index']);
         Route::post('/', [CandidateExamBookingController::class, 'store']);
         Route::get('/{id}', [CandidateExamBookingController::class, 'show']);
         Route::put('/{id}', [CandidateExamBookingController::class, 'update']);
         Route::delete('/{id}', [CandidateExamBookingController::class, 'destroy']);
+        Route::get('/my-bookings', [CandidateExamBookingController::class, 'myBookings']);
     });
-});
 
+    // Exam Engine
+    Route::get('/exam/{id}/questions', [ExamController::class, 'getQuestions']);
+    Route::post('/exam/{id}/submit', [ExamController::class, 'submitAnswers']);
+    Route::get('/exam/{id}/status', [ExamController::class, 'checkStatus']);
+
+    // Student Bookings Overview
+    Route::get('/my-bookings', [CandidateExamBookingController::class, 'studentBookings']);
+});

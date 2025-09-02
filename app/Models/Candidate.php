@@ -6,10 +6,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\Model;
+use App\Models\Answers;
 
-class Candidates extends Authenticatable
+class Candidate extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
+    protected $table = 'candidates';
 
     protected $primaryKey = 'id';
     public $incrementing = true;
@@ -42,6 +45,6 @@ class Candidates extends Authenticatable
 
     public function bookings()
     {
-        return $this->hasMany(CandidateExamBooking::class);
+        return $this->hasMany(CandidateExamBooking::class, 'candidate_id');
     }
 }

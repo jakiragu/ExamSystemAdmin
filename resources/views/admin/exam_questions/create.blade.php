@@ -27,7 +27,7 @@
             @error('question_type')<small class="text-danger">{{ $message }}</small>@enderror
         </div>
 
-        {{-- Dynamic Choices for MCQ / Multiple Response --}}
+        {{-- Dynamic Choices --}}
         <div id="choices-container" class="mb-3" style="display: none;">
             <label class="form-label">Choices</label>
             <div id="choices-list">
@@ -38,7 +38,7 @@
                     </div>
                 </div>
             </div>
-            <button type="button" class="btn btn-sm btn-secondary" onclick="addChoice()">➕ Add Choice</button>
+            <button type="button" class="btn btn-sm btn-secondary" id="add-choice-btn">➕ Add Choice</button>
         </div>
 
         {{-- Difficulty Level --}}
@@ -53,7 +53,7 @@
             @error('difficulty_level')<small class="text-danger">{{ $message }}</small>@enderror
         </div>
 
-        {{-- Practical Question Metadata --}}
+        {{-- Practical Metadata --}}
         <div id="practical-container" class="card mb-4" style="display: none;">
             <div class="card-header">🧪 Practical Exercise Details</div>
             <div class="card-body">
@@ -89,24 +89,31 @@
             @error('exam_objective_id')<small class="text-danger">{{ $message }}</small>@enderror
         </div>
 
-        {{-- Lab Environment for Practical --}}
+        {{-- Lab Environment --}}
         <div id="labenv-container" class="mb-3" style="display: none;">
             <label for="lab_env_id" class="form-label">Lab Environment</label>
             <select class="form-control" name="lab_env_id">
                 <option value="">Select Environment</option>
                 @foreach($labEnvs as $env)
-                    <option value="{{ $env->id }}">{{ $env->name }}</option>
+                    <option value="{{ $env->id }}">{{ $env->schema_name }}</option>
                 @endforeach
             </select>
             @error('lab_env_id')<small class="text-danger">{{ $message }}</small>@enderror
         </div>
 
         {{-- Evaluation Type --}}
-        <div class="mb-3">
+         <div class="mb-3">
             <label for="evaluation_type" class="form-label">Evaluation Type</label>
-            <input type="text" class="form-control" id="evaluation_type" name="evaluation_type">
+            <select class="form-control" id="evaluation_type" name="evaluation_type" required>
+                <option value="">Select Evaluation Type</option>
+                <option value="Manual" {{ old('evaluation_type') == 'Manual' ? 'selected' : '' }}>Manual – Human-reviewed</option>
+                <option value="Auto" {{ old('evaluation_type') == 'Auto' ? 'selected' : '' }}>Auto – System-evaluated</option>
+                <option value="Mixed" {{ old('evaluation_type') == 'Mixed' ? 'selected' : '' }}>Mixed – Hybrid evaluation</option>
+            </select>
             @error('evaluation_type')<small class="text-danger">{{ $message }}</small>@enderror
         </div>
+
+
 
         {{-- Cognitive Level --}}
         <div class="mb-3">
@@ -124,36 +131,46 @@
 
         {{-- CTA --}}
         <button type="submit" class="btn btn-success">✅ Save Question</button>
-         <a href="{{ route('admin.exam-questions.index') }}" class="btn btn-secondary">Cancel</a>
-         <a href="{{ route('admin.exam-questions.import') }}" class="btn btn-outline-primary ms-2">📥 Bulk Import CSV</a>
+        <a href="{{ route('admin.exam-questions.index') }}" class="btn btn-secondary">Cancel</a>
+        <a href="{{ route('admin.exam-questions.import') }}" class="btn btn-outline-primary ms-2">📥 Bulk Import CSV</a>
     </form>
 </div>
 
 {{-- Dynamic UI Script --}}
 <script>
-    document.getElementById('question_type').addEventListener('change', function () {
-        const selected = this.value;
-        const showChoices = ['mcq', 'multiple_response'].includes(selected);
-        const showPractical = selected === 'coding';
+    document.addEventListener('DOMContentLoaded', function () {
+        const questionType = document.getElementById('question_type');
+        const choicesContainer = document.getElementById('choices-container');
+        const practicalContainer = document.getElementById('practical-container');
+        const labenvContainer = document.getElementById('labenv-container');
+        const addChoiceBtn = document.getElementById('add-choice-btn');
+        const choicesList = document.getElementById('choices-list');
 
-        document.getElementById('choices-container').style.display = showChoices ? 'block' : 'none';
-        document.getElementById('practical-container').style.display = showPractical ? 'block' : 'none';
-        document.getElementById('labenv-container').style.display = showPractical ? 'block' : 'none';
+        let choiceIndex = 1;
+
+        function updateUI() {
+            const selected = questionType.value;
+            choicesContainer.style.display = ['mcq', 'multiple_response'].includes(selected) ? 'block' : 'none';
+            const isPractical = selected === 'coding';
+            practicalContainer.style.display = isPractical ? 'block' : 'none';
+            labenvContainer.style.display = isPractical ? 'block' : 'none';
+        }
+
+        questionType.addEventListener('change', updateUI);
+        updateUI(); // initialize on load
+
+        addChoiceBtn.addEventListener('click', function () {
+            const newField = document.createElement('div');
+            newField.className = 'input-group mb-2';
+            newField.innerHTML = `
+                <input type="text" name="choices[${choiceIndex}][choice_text]" class="form-control" placeholder="Choice ${choiceIndex + 1}" required>
+                <div class="input-group-text">
+                    <input type="checkbox" name="choices[${choiceIndex}][is_correct]"> Correct
+                </div>
+            `;
+            choicesList.appendChild(newField);
+            choiceIndex++;
+        });
     });
-
-    let choiceIndex = 1;
-    function addChoice() {
-        const container = document.getElementById('choices-list');
-        const newField = document.createElement('div');
-        newField.className = 'input-group mb-2';
-        newField.innerHTML = `
-            <input type="text" name="choices[${choiceIndex}][choice_text]" class="form-control" placeholder="Choice ${choiceIndex + 1}" required>
-            <div class="input-group-text">
-                <input type="checkbox" name="choices[${choiceIndex}][is_correct]"> Correct
-            </div>
-        `;
-        container.appendChild(newField);
-        choiceIndex++;
-    }
 </script>
 @endsection

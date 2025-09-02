@@ -57,14 +57,16 @@ const BookExamSlot: React.FC = () => {
 
       const response = await axiosInstance.post("/bookings", {
         exam_catalog_id: selectedExam.id,
-        scheduled_date: scheduledDateTime,
+        scheduled_at: scheduledDateTime,
       });
+      const bookingId = response.data.booking.id;
 
-      const booking = response.data.booking;
-      console.log("Booking response:", booking);
+      const fullBookingRes = await axiosInstance.get(`/bookings/${bookingId}`);
+      const fullBooking = fullBookingRes.data;
+    // console.log("fetching full booking from:", '/bookings/${bookingId}');
 
       navigate("/booking-confirmation", {
-        state: { booking },
+        state: { booking: fullBooking },
       });
     } catch (error) {
       console.error("Booking failed:", error);

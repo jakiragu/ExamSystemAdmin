@@ -43,8 +43,13 @@ public function objectives()
 }
 public function bookings()
 {
-    return $this->hasMany(CandidateExamBooking::class);
+    return $this->hasMany(CandidateExamBooking::class, 'exam_catalog_id');
 }
+public function getStartUrlAttribute()
+{
+    return $this->attributes['start_url'] ?? url("/exam/start/{$this->id}");
+}
+
 
 
 }

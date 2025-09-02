@@ -98,4 +98,16 @@ class ExamQuestion extends Model
     {
         return $this->hasOne(EvaluatorScript::class, 'question_id');
     }
+    public function objective()
+{
+    return $this->belongsTo(ExamObjective::class, 'objective_id');
+}
+public function labEnv()
+{
+    return $this->belongsTo(LabEnvironment::class, 'lab_environment_id', 'id');
+}
+
+
+
+
 }

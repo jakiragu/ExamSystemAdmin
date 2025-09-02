@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Models\Candidates;
+use App\Models\Candidate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -27,9 +27,9 @@ class CandidateController extends Controller
         // Generate unique CertificationID
         do {
             $certificationID = rand(10000, 99999);
-        } while (Candidates::where('CertificationID', $certificationID)->exists());
+        } while (Candidate::where('CertificationID', $certificationID)->exists());
 
-        $candidate = Candidates::create([
+        $candidate = Candidate::create([
             'CertificationID' => $certificationID,
             'FullName' => $request->FullName,
             'Email' => $request->Email,
